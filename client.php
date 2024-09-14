@@ -27,7 +27,7 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
 } else {
-    echo "No user found";
+    echo "No users found";
 }
 // Close connection
 $stmt->close();
