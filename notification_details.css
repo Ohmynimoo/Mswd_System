@@ -1,0 +1,136 @@
+.uploaded-files {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.uploaded-files img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.uploaded-files img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.notification-details {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notification-details p {
+    margin-bottom: 10px;
+}
+
+.form-group textarea {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+#submit-comment {
+    margin-top: 15px;
+    background-color: #007bff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+}
+
+#submit-comment:hover {
+    background-color: #0056b3;
+}
+
+.card-title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.uploaded-files-container {
+    padding: 15px 0;
+}
+
+/* Lightbox Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050; /* Higher than the navbar and other elements */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Modal content - enlarge image with better readability */
+.modal-content {
+    margin: auto;
+    display: block;
+    max-width: 90%; /* Increased max-width for larger view */
+    max-height: 90%; /* Increased max-height for larger view */
+    animation: zoom 0.3s;
+    object-fit: contain; /* Maintain aspect ratio */
+}
+
+/* Close button */
+.close {
+    position: absolute;
+    top: 20px; /* Adjusted for better visibility */
+    right: 35px; /* Adjusted for better visibility */
+    color: white;
+    font-size: 45px; /* Increased size for easier access */
+    font-weight: bold;
+    z-index: 1060; /* Higher than modal content to ensure it's clickable */
+    cursor: pointer;
+}
+
+.close:hover, .close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+@keyframes zoom {
+    from { transform: scale(0.1) }
+    to { transform: scale(1) }
+}
+
+/* Adjust the navbar to ensure it doesn't block the modal */
+.navbar {
+    position: relative; /* Ensure navbar doesn't interfere with modal stacking */
+    z-index: 100; /* Set navbar z-index lower than the modal */
+}
+
+.sms-textarea {
+    resize: none;
+    min-height: 100px;
+    transition: border-color 0.3s;
+}
+
+.sms-textarea:focus {
+    border-color: #17a2b8;
+    box-shadow: 0 0 5px rgba(23, 162, 184, 0.3);
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
