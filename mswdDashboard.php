@@ -160,13 +160,9 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
             <option value="bar">Bar Chart</option>
             <option value="pie">Pie Chart</option>
             <option value="line">Line Chart</option>
-          </select>
-            <!-- Chart Canvas -->
-            <canvas id="dynamicChart"></canvas>
-
-          <div class="bar-chart">
-            <canvas id="barChart"></canvas>
-          </div>
+            </select>
+          <!-- Unified dynamic chart -->
+          <canvas id="dynamicChart"></canvas>
         </div>
       </div>
     </section>
@@ -180,7 +176,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
 <script>
     let currentChart;  // Store reference to the current chart
 
-    // Function to fetch data dynamically from the server
     function fetchData(year, startMonth, endMonth) {
         return $.ajax({
             url: 'data_visualization.php',
@@ -194,16 +189,12 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
         });
     }
 
-    // Function to update chart based on data fetched from the server
     function updateChart(type, data) {
         if (currentChart) {
             currentChart.destroy();  // Destroy previous chart instance
         }
 
-        const labels = data.map(item => {
-            return `${item.month}/${item.year}`;
-        });
-
+        const labels = data.map(item => `${item.month}/${item.year}`);
         const lguData = data.map(item => item.lgu_count);
         const barangayData = data.map(item => item.barangay_count);
         const skData = data.map(item => item.sk_count);
@@ -253,7 +244,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
         });
     }
 
-    // Event listener for chart type change
     document.getElementById('chart-type').addEventListener('change', function() {
         const selectedType = this.value;
         const year = $('#year').val();
@@ -265,7 +255,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
         });
     });
 
-    // Event listeners for year and month selectors
     $('#year, #month-from, #month-to').on('change', function() {
         const selectedType = $('#chart-type').val();
         const year = $('#year').val();
@@ -277,7 +266,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
         });
     });
 
-    // Initial chart setup when the page loads
     $(document).ready(function() {
         const year = $('#year').val();
         const startMonth = $('#month-from').val();

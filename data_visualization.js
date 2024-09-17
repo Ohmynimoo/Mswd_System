@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
   let allData;
+  let currentChartType = 'bar'; // Set default chart type
+  let dynamicChart; // Variable to hold the dynamic chart instance
   const yearSelect = document.getElementById('year');
   const monthFromSelect = document.getElementById('month-from');
   const monthToSelect = document.getElementById('month-to');
+  const chartTypeSelect = document.getElementById('chart-type');
 
   // Populate year dropdown with a range of years
   const currentYear = new Date().getFullYear();
@@ -13,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function () {
     yearSelect.appendChild(option);
   }
 
+  // Fetch initial data for the current year and all months
+  fetchData(currentYear, 1, 12);
+
+  // Fetch data based on selected year, startMonth, and endMonth
   function fetchData(year, startMonth, endMonth) {
     fetch(`data_visualization.php?year=${year}&startMonth=${startMonth}&endMonth=${endMonth}`)
       .then(response => response.json())
@@ -23,35 +30,64 @@ document.addEventListener('DOMContentLoaded', function () {
       .catch(error => console.error('Error:', error));
   }
 
-  // Fetch initial data for the current year and all months
-  fetchData(currentYear, 1, 12);
-
-  yearSelect.addEventListener('change', function () {
-    const selectedYear = parseInt(this.value);
-    const startMonth = parseInt(monthFromSelect.value);
-    const endMonth = parseInt(monthToSelect.value);
-    fetchData(selectedYear, startMonth, endMonth);
-  });
-
-  monthFromSelect.addEventListener('change', function () {
-    const selectedYear = parseInt(yearSelect.value);
-    const startMonth = parseInt(this.value);
-    const endMonth = parseInt(monthToSelect.value);
-    fetchData(selectedYear, startMonth, endMonth);
-  });
-
-  monthToSelect.addEventListener('change', function () {
-    const selectedYear = parseInt(yearSelect.value);
-    const startMonth = parseInt(monthFromSelect.value);
-    const endMonth = parseInt(this.value);
-    fetchData(selectedYear, startMonth, endMonth);
-  });
-
+  // Update charts based on the fetched data
   function updateCharts(year, startMonth, endMonth) {
     const filteredData = allData.filter(item => item.year == year && item.month >= startMonth && item.month <= endMonth);
     updatePieCharts(filteredData);
-    updateBarChart(filteredData);
+    updateDynamicChart(filteredData, currentChartType); // Use the current chart type
   }
+
+  // Update the dynamic chart (bar, line, pie, etc.)
+  function updateDynamicChart(data, chartType) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const assistanceTypes = [...new Set(data.map(item => item.assistanceType))];
+    const datasets = assistanceTypes.map(type => ({
+        label: type,
+        backgroundColor: getRandomColors(1)[0],
+        data: months.map((month, index) => 
+            data.filter(item => item.month == index + 1 && item.assistanceType === type)
+                .reduce((acc, cur) => acc + parseInt(cur.lgu_count) + parseInt(cur.barangay_count) + parseInt(cur.sk_count), 0))
+    }));
+
+    const dynamicData = {
+        labels: months,
+        datasets: datasets
+    };
+
+    // Destroy previous chart if it exists
+    if (dynamicChart) {
+        dynamicChart.destroy();
+    }
+
+    // Create a new chart with the selected type
+    const ctx = document.getElementById('dynamicChart').getContext('2d');
+    dynamicChart = new Chart(ctx, {
+        type: chartType,  // Dynamic chart type (bar, line, etc.)
+        data: dynamicData,
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,  // Ensure steps of 1
+                        callback: function(value) {
+                            if (Number.isInteger(value)) {
+                                return value;  // Only show whole numbers
+                            }
+                            return null;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                title: { display: true, text: 'Assistance by Month' },
+                legend: { position: 'top' }
+            }
+        }
+    });
+}
+
 
   // Functions for updating the charts
   function updatePieCharts(data) {
@@ -176,46 +212,51 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  function updateBarChart(data) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const assistanceTypes = [...new Set(data.map(item => item.assistanceType))];
-    const datasets = assistanceTypes.map(type => ({
-      label: type,
-      backgroundColor: getRandomColors(1)[0],
-      borderColor: getRandomColors(1)[0],
-      borderWidth: 1,
-      hoverBackgroundColor: getRandomColors(1)[0],
-      hoverBorderColor: getRandomColors(1)[0],
-      data: months.map((month, index) => data.filter(item => item.month == index + 1 && item.assistanceType === type).reduce((acc, cur) => acc + parseInt(cur.lgu_count) + parseInt(cur.barangay_count) + parseInt(cur.sk_count), 0))
-    }));
-
-    const barData = {
-      labels: months,
-      datasets: datasets
-    };
-
-    const ctx4 = document.getElementById('barChart').getContext('2d');
-    if (ctx4.chart) ctx4.chart.destroy();
-
-    ctx4.chart = new Chart(ctx4, {
-      type: 'bar',
-      data: barData,
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } },
-        plugins: {
-          title: { display: true, text: 'Assistance by Month' },
-          legend: { position: 'top' }
-        }
-      }
-    });
+ // Generate random colors
+ function getRandomColors(count) {
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    colors.push(`#${Math.floor(Math.random() * 16777215).toString(16)}`);
   }
+  return colors;
+}
 
-  function getRandomColors(count) {
-    const colors = [];
-    for (let i = 0; i < count; i++) {
-      colors.push(`#${Math.floor(Math.random() * 16777215).toString(16)}`);
-    }
-    return colors;
-  }
+// Event listeners for year and month selections
+yearSelect.addEventListener('change', function () {
+  const selectedYear = parseInt(this.value);
+  const startMonth = parseInt(monthFromSelect.value);
+  const endMonth = parseInt(monthToSelect.value);
+  fetchData(selectedYear, startMonth, endMonth);
+});
+
+monthFromSelect.addEventListener('change', function () {
+  const selectedYear = parseInt(yearSelect.value);
+  const startMonth = parseInt(this.value);
+  const endMonth = parseInt(monthToSelect.value);
+  fetchData(selectedYear, startMonth, endMonth);
+});
+
+monthToSelect.addEventListener('change', function () {
+  const selectedYear = parseInt(yearSelect.value);
+  const startMonth = parseInt(monthFromSelect.value);
+  const endMonth = parseInt(this.value);
+  fetchData(selectedYear, startMonth, endMonth);
+});
+
+// Event listener for chart type selection
+chartTypeSelect.addEventListener('change', function () {
+  currentChartType = this.value; // Update the current chart type
+  const selectedYear = parseInt(yearSelect.value);
+  const startMonth = parseInt(monthFromSelect.value);
+  const endMonth = parseInt(monthToSelect.value);
+  updateDynamicChart(allData.filter(item => item.year == selectedYear && item.month >= startMonth && item.month <= endMonth), currentChartType);
+});
+
+// Initial chart setup when the page loads
+document.addEventListener('DOMContentLoaded', function () {
+  const selectedYear = yearSelect.value;
+  const startMonth = monthFromSelect.value;
+  const endMonth = monthToSelect.value;
+  updateDynamicChart(allData.filter(item => item.year == selectedYear && item.month >= startMonth && item.month <= endMonth), currentChartType);
+});
 });

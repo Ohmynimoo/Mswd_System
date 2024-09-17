@@ -70,7 +70,7 @@ if (isset($_GET['id'])) {
                     <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
                 </div>
                 <div class="info">
-                    <a href="#" class="d-block">Jiron V. Niemo</a>
+                    <a href="#" class="d-block">Social Worker Admin</a>
                 </div>
             </div>
             <nav class="mt-2">
@@ -164,7 +164,7 @@ if (isset($_GET['id'])) {
                             </div>
                             <div class="form-group">
                                 <label for="message"><i class="fas fa-comment-alt"></i> Message</label>
-                                <textarea class="form-control sms-textarea" id="message" rows="3">Hello, this is a reminder from MSWDO regarding your request. Please contact us for more details.</textarea>
+                                <textarea class="form-control sms-textarea" id="message" rows="3">Hello, this is a reminder from MSWDO of Bulan Sorsogon regarding your request. Please bring the physical requirements in our office, Thank You.</textarea>
                             </div>
                             <button type="button" class="btn btn-info btn-block" id="send-sms" data-notification-id="<?php echo $notificationId; ?>"><i class="fas fa-paper-plane"></i> Send SMS</button>
                         </form>

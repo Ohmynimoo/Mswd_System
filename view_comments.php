@@ -1,10 +1,8 @@
 <?php
 session_start();
 include 'config.php';
-
 $userId = $_SESSION['userid'];
 $notificationId = isset($_GET['notification_id']) ? intval($_GET['notification_id']) : null;
-
 $query = "
     SELECT 
         cn.id as notification_id, 
@@ -51,15 +49,15 @@ while ($row = $result->fetch_assoc()) {
             'message' => $row['message'],
             'comment' => $row['comment'],
             'client_name' => $row['client_name'],
-            'category' => $row['category'],
-            'files' => []
+            'files' => []  // Remove 'category' from here
         ];
     }
     $notifications[$notificationId]['files'][] = [
         'filename' => $row['filename'],
         'file_type' => $row['file_type'],
         'file_data' => $row['file_data'],
-        'upload_date' => $row['upload_date']
+        'upload_date' => $row['upload_date'],
+        'category' => $row['category']  // Store category for each file individually
     ];
 }
 
@@ -249,7 +247,6 @@ $conn->close();
                             <h5>Notification Message:</h5>
                             <p><?php echo htmlspecialchars($notification['message']); ?></p>
                             <p><strong>Comment:</strong> <span class="highlight-comment"><?php echo htmlspecialchars($notification['comment']); ?></span></p>
-                            <p><strong>Category:</strong> <?php echo htmlspecialchars($notification['category']); ?></p>
                             
                             <h5>Uploaded Files:</h5>
                             <div class="uploaded-file-list">
@@ -263,6 +260,7 @@ $conn->close();
                                             </a>
                                         <?php endif; ?>
                                         <p><strong>Upload Date:</strong> <?php echo htmlspecialchars($file['upload_date']); ?></p>
+                                        <p><strong>File Category:</strong> <?php echo htmlspecialchars($file['category']); ?></p> <!-- Display file's category -->
                                     </div>
                                 <?php endforeach; ?>
                             </div>

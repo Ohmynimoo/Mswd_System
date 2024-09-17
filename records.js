@@ -4,7 +4,6 @@ $(document).ready(function () {
         "lengthChange": false,
         "autoWidth": true
     });
-
     function fetchRecords() {
         $.ajax({
             url: 'add_record.php',
@@ -28,14 +27,10 @@ $(document).ready(function () {
             }
         });
     }
-
     fetchRecords();
-
     $('#recordForm').submit(function (event) {
         event.preventDefault();
-
         var formData = $(this).serialize();
-
         $.ajax({
             url: 'add_record.php',
             method: 'POST',
@@ -51,7 +46,6 @@ $(document).ready(function () {
             }
         });
     });
-
     $('#addRecordButton').click(function () {
         $('#addRecordForm').toggle();
     });
@@ -61,7 +55,6 @@ $(document).ready(function () {
     var record = button.data('record');
     var modal = $(this);
     var modalBody = modal.find('.modal-body');
-
     // Personal Information Card
     var details = `
         <div class="card">
@@ -90,7 +83,6 @@ $(document).ready(function () {
         </div>
         <hr>
     `;
-
     // Family Members Card (All in one card)
     if (record.familyMembers && record.familyMembers.length > 0) {
         details += `
@@ -100,7 +92,6 @@ $(document).ready(function () {
                 </div>
                 <div class="card-body">
         `;
-
         record.familyMembers.forEach(function(familyMember, index) {
             details += `
                 <p>First Name:${familyMember.firstName}</p>
@@ -112,7 +103,6 @@ $(document).ready(function () {
                 <hr>
             `;
         });
-
         details += `
                 </div>
             </div>
@@ -129,14 +119,9 @@ $(document).ready(function () {
             </div>
         `;
     }
-
     modalBody.html(details);
     modal.find('#editRecordButton').data('record', record);
 });
-
-
-
-
   $('#editRecordButton').click(function () {
       var record = $(this).data('record');
       if (!record) {
