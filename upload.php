@@ -135,7 +135,6 @@ $conn->close();
                   </div>
                   <?php unset($_SESSION['error_message']); ?>
                 <?php endif; ?>
-
                 <!-- Form for file upload -->
                 <form id="uploadForm" action="" method="post" enctype="multipart/form-data">
                   <div class="form-group">

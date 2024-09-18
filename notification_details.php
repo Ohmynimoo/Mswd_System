@@ -44,6 +44,7 @@ if (isset($_GET['id'])) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Notification Details</title>
+    <link href="plugins/BOOTSTRAP5/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
@@ -126,8 +127,7 @@ if (isset($_GET['id'])) {
         <section class="content">
             <div class="container-fluid">
                 <div class="card card-primary">
-                    <!-- Placeholder for dynamic alerts -->
-                    <div id="alert-container"></div>
+                    
                     
                     <div class="card-header">
                         <h3 class="card-title">Details</h3>
@@ -171,9 +171,21 @@ if (isset($_GET['id'])) {
                     </div>
                 </div>
             </div>
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="commentToast" class="toast bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Comment Status</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body" id="commentToastBody">
+                        <!-- Dynamic message will be inserted here -->
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 </div>
+
 
 <!-- Modal for enlarging images -->
 <div id="lightboxModal" class="modal">
@@ -181,6 +193,7 @@ if (isset($_GET['id'])) {
     <img class="modal-content" id="modalImage">
 </div>
 
+<script src="plugins/BOOTSTRAP5/js/bootstrap.bundle.min.js"></script>
 <script src="plugins/jquery/jquery.min.js"></script>
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist/js/adminlte.js"></script>

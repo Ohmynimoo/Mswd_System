@@ -61,7 +61,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registration Page</title>
+    <title>MSWD Register</title>
     <!-- Google Font: Source Sans Pro -->
     <!-- If you want to load fonts locally, download and include them here -->
     <link rel="stylesheet" href="path/to/local/fonts/source-sans-pro.css">

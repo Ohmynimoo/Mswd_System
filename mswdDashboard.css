@@ -30,24 +30,41 @@
   .year-selector {
     margin-bottom: 20px;
   }
+  /* Custom modern style for the dropdown */
   .modern-dropdown {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background: #f1f1f1;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    appearance: none; /* Removes the default dropdown arrow */
     padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background-color: #f4f6f9; /* Same as the background of the page */
+    font-family: 'Source Sans Pro', sans-serif;
     font-size: 16px;
     color: #333;
+    width: 100%;
+    max-width: 300px; /* Optional max width */
     outline: none;
-    transition: border-color 0.3s ease;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
   }
+
   .modern-dropdown:focus {
     border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
   }
+
   .modern-dropdown option {
     padding: 10px;
+    background-color: #ffffff;
+  }
+
+  /* Optional: Styling the arrow for the dropdown */
+  .modern-dropdown::after {
+    content: "▼";
+    font-size: 12px;
+    color: #333;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+
   }
   .year-selector label {
     margin-right: 10px;

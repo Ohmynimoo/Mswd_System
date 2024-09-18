@@ -22,6 +22,12 @@ $fundType = $_POST['fundType'];
 $amount = $_POST['amount'];
 $beneficiary = $_POST['beneficiary'];
 
+// Check if required fields are empty
+if (empty($firstName) || empty($lastName) || empty($age) || empty($birthPlace) || empty($address) || empty($education) || empty($income) || empty($occupation) || empty($mobileNumber) || empty($gender) || empty($clientType) || empty($assistanceType) || empty($fundType) || empty($amount) || empty($beneficiary)) {
+    echo json_encode(['status' => 'error', 'message' => 'Required fields cannot be empty.']);
+    exit;
+}
+
 // Update the record in the database
 $conn = new mysqli($servername, $username, $password, $dbname);
 

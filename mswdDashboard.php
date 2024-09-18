@@ -156,11 +156,11 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
           </div>
           <!-- Dropdown to select chart type -->
           <label for="chart-type">Select Chart Type:</label>
-          <select id="chart-type">
-            <option value="bar">Bar Chart</option>
-            <option value="pie">Pie Chart</option>
-            <option value="line">Line Chart</option>
-            </select>
+          <select id="chart-type" class="modern-dropdown">
+              <option value="bar">Bar Chart</option>
+              <option value="pie">Pie Chart</option>
+              <option value="line">Line Chart</option>
+          </select>
           <!-- Unified dynamic chart -->
           <canvas id="dynamicChart"></canvas>
         </div>

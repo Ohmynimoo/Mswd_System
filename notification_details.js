@@ -1,4 +1,3 @@
-// script.js
 
 // Image Modal Logic
 var modal = document.getElementById("lightboxModal");
@@ -34,14 +33,35 @@ $('#submit-comment').on('click', function() {
             comment: comment
         },
         success: function(response) {
-            alert(response);
-            $('#comment').val('');
+            // Change the class to indicate success
+            $('#commentToast').removeClass('bg-danger').addClass('bg-success');
+            
+            // Show the success message in the toast
+            $('#commentToastBody').text(response);
+
+            // Initialize and show the toast manually with a delay of 5 seconds
+            var toastElement = document.getElementById('commentToast');
+            var toast = new bootstrap.Toast(toastElement, { delay: 5000 }); // Show for 5 seconds
+            toast.show();
+
+            $('#comment').val('');  // Clear the comment box
         },
         error: function() {
-            alert('Error submitting comment.');
+            // Change the class to indicate an error
+            $('#commentToast').removeClass('bg-success').addClass('bg-danger');
+            
+            // Show the error message in the toast
+            $('#commentToastBody').text('Error submitting comment.');
+
+            // Initialize and show the toast manually with a delay of 5 seconds
+            var toastElement = document.getElementById('commentToast');
+            var toast = new bootstrap.Toast(toastElement, { delay: 5000 }); // Show for 5 seconds
+            toast.show();
         }
     });
 });
+
+
 
 // Send SMS logic
 $('#send-sms').on('click', function() {
