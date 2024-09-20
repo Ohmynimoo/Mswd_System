@@ -18,10 +18,10 @@ if ($conn->connect_error) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $mobile = $_POST['mobile'];
-    $password = $_POST['password'];
+    $mobile = htmlspecialchars(trim($_POST['mobile']));
+    $password = htmlspecialchars(trim($_POST['password']));
 
-    // Prepare and bind
+    // Prepare and bind statement
     $stmt = $conn->prepare("SELECT id, password, is_admin FROM users WHERE mobile = ?");
     $stmt->bind_param("s", $mobile);
 
@@ -33,19 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Fetch value
     if ($stmt->fetch()) {
+        // Verify password
         if (password_verify($password, $hashed_password)) {
+            // Handle session depending on user role
             if ($is_admin) {
-                // Set a unique session name for admins
                 session_name('admin_session');
-                session_start();
                 session_regenerate_id(true);
                 $_SESSION['admin_id'] = $id;
                 $_SESSION['is_admin'] = true;
                 header("Location: mswdDashboard.php");
             } else {
-                // Set a unique session name for clients
                 session_name('client_session');
-                session_start();
                 session_regenerate_id(true);
                 $_SESSION['userid'] = $id;
                 $_SESSION['is_admin'] = false;
@@ -59,9 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "No user found with that mobile number.";
     }
 
+    // Close statement
     $stmt->close();
-    $conn->close();
 }
+
+// Close connection
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -72,15 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <title>MSWD Log In</title>
 
   <!-- Google Font: Source Sans Pro -->
-  <!-- If you want to load fonts locally, download and include them here -->
   <link rel="stylesheet" href="path/to/local/fonts/source-sans-pro.css">
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
-
   <!-- iCheck Bootstrap -->
   <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-
   <!-- Theme style -->
   <link rel="stylesheet" href="dist/css/adminlte.min.css">
 </head>
@@ -123,9 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           </div>
         </div>
         <div class="row">
-          <div class="col-0 ">
-          
-          </div>
           <div class="col-12">
             <button type="submit" class="btn btn-primary btn-block">Sign In</button>
           </div>
@@ -140,10 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!-- jQuery -->
 <script src="plugins/jquery/jquery.min.js"></script>
-
 <!-- Bootstrap 4 -->
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-
 <!-- AdminLTE App -->
 <script src="dist/js/adminlte.min.js"></script>
 </body>

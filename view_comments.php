@@ -1,8 +1,12 @@
 <?php
 session_start();
 include 'config.php';
+
+// Ensure the user is logged in
 $userId = $_SESSION['userid'];
 $notificationId = isset($_GET['notification_id']) ? intval($_GET['notification_id']) : null;
+
+// Fetch comments and uploaded file information
 $query = "
     SELECT 
         cn.id as notification_id, 
@@ -41,6 +45,7 @@ $stmt->bind_param(str_repeat("i", count($params)), ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 
+// Prepare data structure to hold notifications and comments
 $notifications = [];
 while ($row = $result->fetch_assoc()) {
     $notificationId = $row['notification_id'];
@@ -49,7 +54,7 @@ while ($row = $result->fetch_assoc()) {
             'message' => $row['message'],
             'comment' => $row['comment'],
             'client_name' => $row['client_name'],
-            'files' => []  // Remove 'category' from here
+            'files' => []
         ];
     }
     $notifications[$notificationId]['files'][] = [
@@ -57,13 +62,12 @@ while ($row = $result->fetch_assoc()) {
         'file_type' => $row['file_type'],
         'file_data' => $row['file_data'],
         'upload_date' => $row['upload_date'],
-        'category' => $row['category']  // Store category for each file individually
+        'category' => $row['category']
     ];
 }
 
-// Fetch user information
-$userId = $_SESSION['userid'];
-$sql = "SELECT fullname, mobile, birthday, address FROM users WHERE id = ?";
+// Fetch user information and dynamically create fullname
+$sql = "SELECT CONCAT(first_name, ' ', middle_name, ' ', last_name) AS fullname, mobile, birthday, address FROM users WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
@@ -74,9 +78,26 @@ if ($result->num_rows > 0) {
 } else {
     echo "No user found";
 }
+// Fetch the status from the database
+$statusQuery = "SELECT status FROM notifications WHERE id = ?";
+$stmt = $conn->prepare($statusQuery);
+$stmt->bind_param("i", $notificationId);
+$stmt->execute();
+$statusResult = $stmt->get_result();
+$statusRow = $statusResult->fetch_assoc();
 
+// Ensure the result is not null before accessing the status
+if ($statusRow) {
+    $status = $statusRow['status'];
+} else {
+    // Set a default status or handle the error appropriately
+    $status = 'Pending'; // Assuming Pending as the default status
+}
+
+// Close the statement and connection
 $stmt->close();
 $conn->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -88,80 +109,7 @@ $conn->close();
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
-    <style>
-    .comment-box {
-        padding: 20px;
-        margin: 15px 0;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background-color: #fff;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .comment-box h5 {
-        margin-bottom: 10px;
-        color: #333;
-        font-size: 18px;
-        font-weight: 600;
-    }
-
-    .comment-box p {
-        margin: 5px 0;
-        font-size: 14px;
-        color: #555;
-    }
-
-    .uploaded-file {
-        margin-top: 15px;
-        padding: 10px;
-        border: 1px solid #e5e5e5;
-        border-radius: 6px;
-        background-color: #f7f7f7;
-    }
-
-    .uploaded-file img {
-        max-width: 150px;
-        height: auto;
-        border-radius: 6px;
-        margin-right: 10px;
-        display: inline-block;
-    }
-
-    .uploaded-file a {
-        display: block;
-        margin-top: 10px;
-        font-size: 14px;
-        color: #007bff;
-        text-decoration: none;
-    }
-
-    .uploaded-file p {
-        margin: 10px 0 0;
-        font-size: 13px;
-        color: #888;
-    }
-
-    .uploaded-file .file-icon {
-        font-size: 20px;
-        color: #6c757d;
-        margin-right: 8px;
-    }
-
-    .uploaded-file-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    .highlight-comment {
-    background-color: #fffbe6;  /* Light yellow background */
-    padding: 5px;
-    border-radius: 4px;
-    font-weight: bold;
-    color: #d9534f; /* Red text */
-}
-
-</style>
-
+    <link rel="stylesheet" href="view_comments.css">
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -188,7 +136,6 @@ $conn->close();
                 <a href="#" class="d-block"><?php echo htmlspecialchars($user['fullname']); ?></a>
                 </div>
             </div>
-
 
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
@@ -234,7 +181,7 @@ $conn->close();
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>Comments on Your Uploaded Files</h1>
+                        <h1>Status of your Request</h1>
                     </div>
                 </div>
             </div>
@@ -260,7 +207,7 @@ $conn->close();
                                             </a>
                                         <?php endif; ?>
                                         <p><strong>Upload Date:</strong> <?php echo htmlspecialchars($file['upload_date']); ?></p>
-                                        <p><strong>File Category:</strong> <?php echo htmlspecialchars($file['category']); ?></p> <!-- Display file's category -->
+                                        <p><strong>File Category:</strong> <?php echo htmlspecialchars($file['category']); ?></p>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -331,11 +278,10 @@ $conn->close();
             }.bind(this) // Bind the context to the current element
         });
     });
-
     // Fetch notifications periodically, e.g., every 30 seconds
     setInterval(fetchNotifications, 30000);
 });
-</script>
 
+</script>
 </body>
 </html>

@@ -5,11 +5,13 @@ if (!isset($_SESSION['userid'])) {
     header("Location: login.php");
     exit();
 }
+
 // Database connection
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "mswd_system";
+
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -17,18 +19,22 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
 // Fetch user information
 $userId = $_SESSION['userid'];
-$sql = "SELECT fullname, mobile, birthday, address FROM users WHERE id = ?";
+$sql = "SELECT first_name, middle_name, last_name, mobile, birthday, address FROM users WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
+    // Combine first_name, middle_name, and last_name to create fullname
+    $fullname = $user['first_name'] . ' ' . ($user['middle_name'] ? $user['middle_name'] . ' ' : '') . $user['last_name'];
 } else {
     echo "No users found";
 }
+
 // Close connection
 $stmt->close();
 $conn->close();
@@ -88,10 +94,10 @@ $conn->close();
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                    <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
                 </div>
                 <div class="info">
-                <a href="#" class="d-block"><?php echo htmlspecialchars($user['fullname']); ?></a>
+                    <a href="#" class="d-block"><?php echo htmlspecialchars($fullname); ?></a>
                 </div>
             </div>
             <nav class="mt-2">

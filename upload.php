@@ -2,12 +2,14 @@
 // Start the session and include the config
 session_start();
 include 'config.php';
+
 // Fetch user information
 $userId = $_SESSION['userid'] ?? null; // Ensure that session has 'userid'
 $user = null;
+
 if ($userId) {
     // Fetch user information from the database
-    $sql = "SELECT fullname, mobile, birthday, address FROM users WHERE id = ?";
+    $sql = "SELECT first_name, middle_name, last_name, mobile, birthday, address, birthplace, gender FROM users WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $userId);
     $stmt->execute();
@@ -56,7 +58,9 @@ $conn->close();
         </div>
         <div class="info">
           <?php if ($user): ?>
-            <a href="#" class="d-block"><?php echo htmlspecialchars($user['fullname']); ?></a>
+            <a href="#" class="d-block">
+              <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']); ?>
+            </a>
           <?php else: ?>
             <a href="#" class="d-block">Unknown User</a>
           <?php endif; ?>
@@ -138,8 +142,16 @@ $conn->close();
                 <!-- Form for file upload -->
                 <form id="uploadForm" action="" method="post" enctype="multipart/form-data">
                   <div class="form-group">
-                    <label for="fullname">Full Name</label>
-                    <input type="text" class="form-control" id="fullname" name="fullname" value="<?php echo htmlspecialchars($user['fullname']); ?>" readonly>
+                    <label for="first_name">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['first_name']); ?>" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label for="middle_name">Middle Name</label>
+                    <input type="text" class="form-control" id="middle_name" name="middle_name" value="<?php echo htmlspecialchars($user['middle_name']); ?>" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" readonly>
                   </div>
                   <div class="form-group">
                     <label for="mobile">Mobile</label>
@@ -152,6 +164,10 @@ $conn->close();
                   <div class="form-group">
                     <label for="address">Address</label>
                     <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($user['address']); ?>" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label for="birthplace">Birthplace</label>
+                    <input type="text" class="form-control" id="birthplace" name="birthplace" value="<?php echo htmlspecialchars($user['birthplace']); ?>" readonly>
                   </div>
                   <div class="form-group">
                       <label for="category">Category</label>

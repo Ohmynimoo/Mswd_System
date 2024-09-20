@@ -61,13 +61,11 @@ $('#submit-comment').on('click', function() {
     });
 });
 
-
-
-// Send SMS logic
-$('#send-sms').on('click', function() {
+// Send SMS for Interview
+$('#send-sms-interview').on('click', function() {
     var notificationId = $(this).data('notification-id');
-    var mobile = $('#mobile').val();
-    var message = $('#message').val();
+    var mobile = $('#mobile-interview').val();
+    var message = $('#message-interview').val();
 
     $.ajax({
         url: 'send_sms.php',
@@ -78,10 +76,33 @@ $('#send-sms').on('click', function() {
             message: message
         },
         success: function(response) {
-            alert('SMS sent successfully.');
+            alert(response);  // Alert will show success or error message
         },
         error: function() {
-            alert('Error sending SMS.');
+            alert('Error sending SMS for Interview.');
+        }
+    });
+});
+
+// Send SMS for Payout
+$('#send-sms-payout').on('click', function() {
+    var notificationId = $(this).data('notification-id');
+    var mobile = $('#mobile-payout').val();
+    var message = $('#message-payout').val();
+
+    $.ajax({
+        url: 'send_sms.php',
+        type: 'POST',
+        data: {
+            notification_id: notificationId,
+            mobile: mobile,
+            message: message
+        },
+        success: function(response) {
+            alert(response);  // Alert will show success or error message
+        },
+        error: function() {
+            alert('Error sending SMS for Payout.');
         }
     });
 });

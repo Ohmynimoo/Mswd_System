@@ -1,0 +1,122 @@
+.comment-box {
+    padding: 20px;
+    margin: 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comment-box h5 {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.comment-box p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.uploaded-file {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background-color: #f7f7f7;
+}
+
+.uploaded-file img {
+    max-width: 150px;
+    height: auto;
+    border-radius: 6px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.uploaded-file a {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.uploaded-file p {
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: #888;
+}
+
+.uploaded-file .file-icon {
+    font-size: 20px;
+    color: #6c757d;
+    margin-right: 8px;
+}
+
+.uploaded-file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.highlight-comment {
+    background-color: #fffbe6;
+    padding: 5px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #d9534f;
+}
+        /* Container for the timeline */
+        .status-tracker {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        /* Line connecting the statuses */
+        .status-tracker .line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+
+        /* Circles for each status */
+        .status-tracker .circle {
+            position: relative;
+            z-index: 2;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .status-tracker .circle.active {
+            background-color: #007bff;
+        }
+
+        /* Text below each circle */
+        .status-tracker .status-label {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Update line for active status */
+        .status-tracker .line.active {
+            background-color: #007bff;
+            z-index: 0;
+        }
+

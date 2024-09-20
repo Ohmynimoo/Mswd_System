@@ -17,7 +17,7 @@ if ($conn->connect_error) {
 
 // Fetch user information
 $userId = $_SESSION['userid'];
-$sql = "SELECT fullname, mobile, birthday, address FROM users WHERE id = ?";
+$sql = "SELECT first_name, middle_name, last_name, mobile, birthday, address, birthplace, gender FROM users WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $userId);
 $stmt->execute();
@@ -69,7 +69,7 @@ $conn->close();
           <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block"><?php echo htmlspecialchars($user['fullname']); ?></a>
+          <a href="#" class="d-block"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></a>
         </div>
       </div>
 
@@ -134,8 +134,16 @@ $conn->close();
           </div>
           <!-- /.card-header -->
           <div class="card-body">
-            <strong><i class="fas fa-user mr-1"></i> Full Name</strong>
-            <p class="text-muted"><?php echo htmlspecialchars($user['fullname']); ?></p>
+            <strong><i class="fas fa-user mr-1"></i> First Name</strong>
+            <p class="text-muted"><?php echo htmlspecialchars($user['first_name']); ?></p>
+            <hr>
+
+            <strong><i class="fas fa-user mr-1"></i> Middle Name</strong>
+            <p class="text-muted"><?php echo htmlspecialchars($user['middle_name']); ?></p>
+            <hr>
+
+            <strong><i class="fas fa-user mr-1"></i> Last Name</strong>
+            <p class="text-muted"><?php echo htmlspecialchars($user['last_name']); ?></p>
             <hr>
 
             <strong><i class="fas fa-phone mr-1"></i> Mobile</strong>
@@ -148,6 +156,14 @@ $conn->close();
 
             <strong><i class="fas fa-map-marker-alt mr-1"></i> Address</strong>
             <p class="text-muted"><?php echo htmlspecialchars($user['address']); ?></p>
+            <hr>
+
+            <strong><i class="fas fa-map-marker-alt mr-1"></i> Birthplace</strong>
+            <p class="text-muted"><?php echo htmlspecialchars($user['birthplace']); ?></p>
+            <hr>
+
+            <strong><i class="fas fa-venus-mars mr-1"></i> Gender</strong>
+            <p class="text-muted"><?php echo htmlspecialchars($user['gender']); ?></p>
           </div>
           <!-- /.card-body -->
         </div>
@@ -176,8 +192,6 @@ $conn->close();
 <!-- AdminLTE -->
 <script src="dist/js/adminlte.js"></script>
 <script src="personal_information.js"></script>
-
-</body>
 
 </body>
 </html>

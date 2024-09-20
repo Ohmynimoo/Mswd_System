@@ -1,12 +1,30 @@
 <?php
 // notification_details.php
-
 include 'config.php';
 
 if (isset($_GET['id'])) {
     $notificationId = $_GET['id'];
 
-    $query = "SELECT * FROM notifications WHERE id =?";
+    // Modify the query to include the category
+    $query = "
+    SELECT 
+        notifications.*,
+        uploads.user_id,
+        uploads.category, -- Fetch the category from uploads table
+        users.first_name,
+        users.middle_name,
+        users.last_name,
+        users.mobile,
+        users.birthday,
+        users.address,
+        users.birthplace,
+        users.gender
+    FROM notifications
+    INNER JOIN uploads ON FIND_IN_SET(uploads.id, notifications.file_ids)
+    INNER JOIN users ON uploads.user_id = users.id
+    WHERE notifications.id = ?";
+
+    
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $notificationId);
     $stmt->execute();
@@ -14,6 +32,7 @@ if (isset($_GET['id'])) {
     $notification = $result->fetch_assoc();
     $stmt->close();
 
+    // Fetch the files associated with the notification
     $fileIds = explode(',', $notification['file_ids']);
     $fileIdsString = implode("','", $fileIds);
     $fileQuery = "SELECT filename, file_type, file_data FROM uploads WHERE id IN ('$fileIdsString')";
@@ -59,6 +78,7 @@ if (isset($_GET['id'])) {
             </li>
         </ul>
     </nav>
+
     <!-- Updated Sidebar Menu -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
         <a href="index3.html" class="brand-link">
@@ -112,6 +132,7 @@ if (isset($_GET['id'])) {
             </nav>
         </div>
     </aside>
+
     <div class="content-wrapper">
         <section class="content-header">
             <div class="container-fluid">
@@ -122,24 +143,54 @@ if (isset($_GET['id'])) {
                 </div>
             </div>
         </section>
-        
-        <!-- Display success and error messages -->
+
+        <!-- Main Content -->
         <section class="content">
             <div class="container-fluid">
                 <div class="card card-primary">
-                    
-                    
                     <div class="card-header">
                         <h3 class="card-title">Details</h3>
                     </div>
                     <div class="card-body notification-details">
-                        <p><strong>Client Name:</strong> <?php echo htmlspecialchars($notification['client_name']); ?></p>
-                        <p><strong>Mobile:</strong> <?php echo htmlspecialchars($notification['mobile']); ?></p>
-                        <p><strong>Birthday:</strong> <?php echo htmlspecialchars($notification['birthday']); ?></p>
-                        <p><strong>Address:</strong> <?php echo htmlspecialchars($notification['address']); ?></p>
-                        <p><strong>Category:</strong> <?php echo htmlspecialchars($notification['category']); ?></p>
-
-                        <p><strong>Uploaded Files:</strong></p>
+                        <h5><strong>Personal Information of the Client</strong></h5>
+                        <!-- Personal details in horizontal layout using Bootstrap grid -->
+                        <div class="row mb-10">
+                            <div class="col-md-2">
+                                <strong>First Name:</strong> <?php echo htmlspecialchars($notification['first_name']); ?>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Middle Name:</strong> <?php echo htmlspecialchars($notification['middle_name']); ?>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Last Name:</strong> <?php echo htmlspecialchars($notification['last_name']); ?>
+                            </div>
+                        </div>
+                        <div class="row mb-10">
+                            <div class="col-md-2">
+                                <strong>Mobile:</strong> <?php echo htmlspecialchars($notification['mobile']); ?>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Birthday:</strong> <?php echo htmlspecialchars($notification['birthday']); ?>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Gender:</strong> <?php echo htmlspecialchars($notification['gender']); ?>
+                            </div>
+                        </div>
+                        <div class="row mb-10">
+                            <div class="col-md-6">
+                                <strong>Address:</strong> <?php echo htmlspecialchars($notification['address']); ?>
+                            </div>
+                            <div class="col-md-10">
+                                <strong>Birthplace:</strong> <?php echo htmlspecialchars($notification['birthplace']); ?>
+                            </div>
+                        </div>
+                        <div class="row mb-10">
+                            <div class="col-md-10">
+                                <strong>Category:</strong> <?php echo htmlspecialchars($notification['category']); ?>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mt-4"><strong>Uploaded Files:</strong></h5>
                         <div class="uploaded-files-container">
                             <div class="uploaded-files">
                                 <?php foreach ($files as $file): ?>
@@ -154,23 +205,51 @@ if (isset($_GET['id'])) {
                         </div>
                         <button class="btn btn-primary" id="submit-comment" data-notification-id="<?php echo $notificationId; ?>">Submit Comment</button>
 
-                        <!-- Send SMS form included here -->
+                        <!-- Send SMS section starts here -->
                         <hr>
                         <h3 class="mt-4">Send SMS</h3>
-                        <form id="send-sms-form">
-                            <div class="form-group">
-                                <label for="mobile"><i class="fas fa-phone-alt"></i> Mobile Number</label>
-                                <input type="text" class="form-control" id="mobile" value="<?php echo htmlspecialchars($notification['mobile']); ?>" readonly>
+                        <div class="row">
+                            <!-- SMS for Interview -->
+                            <div class="col-md-6">
+                                <form id="send-sms-interview-form">
+                                    <div class="form-group">
+                                        <label for="mobile"><i class="fas fa-phone-alt"></i> Mobile Number</label>
+                                        <input type="text" class="form-control" id="mobile-interview" value="<?php echo htmlspecialchars($notification['mobile']); ?>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="message-interview"><i class="fas fa-comment-alt"></i> Message</label>
+                                        <textarea class="form-control sms-textarea" id="message-interview" rows="3">Hello, this is a reminder from MSWDO of Bulan Sorsogon regarding your request. Please bring the physical requirements in our office for an interview. Thank You.</textarea>
+                                    </div>
+                                    <button type="button" class="btn btn-info btn-block" id="send-sms-interview" data-notification-id="<?php echo $notificationId; ?>">
+                                        <i class="fas fa-paper-plane"></i> Send SMS for an Interview
+                                    </button>
+                                </form>
                             </div>
-                            <div class="form-group">
-                                <label for="message"><i class="fas fa-comment-alt"></i> Message</label>
-                                <textarea class="form-control sms-textarea" id="message" rows="3">Hello, this is a reminder from MSWDO of Bulan Sorsogon regarding your request. Please bring the physical requirements in our office, Thank You.</textarea>
+
+                            <!-- SMS for Pay out -->
+                            <div class="col-md-6">
+                                <form id="send-sms-payout-form">
+                                    <div class="form-group">
+                                        <label for="mobile-payout"><i class="fas fa-phone-alt"></i> Mobile Number</label>
+                                        <input type="text" class="form-control" id="mobile-payout" value="<?php echo htmlspecialchars($notification['mobile']); ?>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="message-payout"><i class="fas fa-comment-alt"></i> Message</label>
+                                        <textarea class="form-control sms-textarea" id="message-payout" rows="3">Hello, this is a reminder from MSWDO of Bulan Sorsogon that your request has been approved. Please go to the Treasury for Pay out.</textarea>
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-block" id="send-sms-payout" data-notification-id="<?php echo $notificationId; ?>">
+                                        <i class="fas fa-paper-plane"></i> Send SMS for Pay out
+                                    </button>
+                                </form>
                             </div>
-                            <button type="button" class="btn btn-info btn-block" id="send-sms" data-notification-id="<?php echo $notificationId; ?>"><i class="fas fa-paper-plane"></i> Send SMS</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                        </div>
+
+                        <!-- Denied Button -->
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-danger btn-block" id="deny-request" data-notification-id="<?php echo $notificationId; ?>">
+                                <i class="fas fa-times-circle"></i> Deny Request
+                            </button>
+                        </div>
             <div class="toast-container position-fixed top-0 end-0 p-3">
                 <div id="commentToast" class="toast bg-success" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">
@@ -185,14 +264,11 @@ if (isset($_GET['id'])) {
         </section>
     </div>
 </div>
-
-
 <!-- Modal for enlarging images -->
 <div id="lightboxModal" class="modal">
     <span class="close">&times;</span>
     <img class="modal-content" id="modalImage">
 </div>
-
 <script src="plugins/BOOTSTRAP5/js/bootstrap.bundle.min.js"></script>
 <script src="plugins/jquery/jquery.min.js"></script>
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>

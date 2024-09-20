@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->begin_transaction();
 
     try {
+        // Fetch client name from the notifications table
         $query = "SELECT client_name FROM notifications WHERE id = ?";
         $stmt = $conn->prepare($query);
         if (!$stmt) {
@@ -25,7 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             throw new Exception("Client name not found for notification ID: " . $notificationId);
         }
 
-        $query = "SELECT id FROM users WHERE fullname = ?";
+        // Fetch the client ID by matching the first_name, middle_name, and last_name
+        $query = "
+            SELECT id FROM users 
+            WHERE CONCAT(first_name, ' ', middle_name, ' ', last_name) = ?
+        ";
         $stmt = $conn->prepare($query);
         if (!$stmt) {
             throw new Exception("Prepare statement failed: " . $conn->error);
@@ -40,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             throw new Exception("Client ID not found for client name: " . $clientName);
         }
 
+        // Insert a notification for the client
         $notificationMessage = "New comment on your uploaded file.";
         $query = "INSERT INTO client_notifications (user_id, message) VALUES (?, ?)";
         $stmt = $conn->prepare($query);
@@ -51,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $clientNotificationId = $stmt->insert_id;
         $stmt->close();
 
+        // Insert the comment
         $query = "INSERT INTO comments (notification_id, user_id, comment) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($query);
         if (!$stmt) {
@@ -60,10 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute();
         $stmt->close();
 
+        // Commit transaction
         $conn->commit();
 
         echo "Comment submitted and client notified successfully.";
     } catch (Exception $e) {
+        // Rollback on error
         $conn->rollback();
         echo "Failed to submit comment: " . $e->getMessage();
     }
@@ -72,4 +81,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $conn->close();
-?>
