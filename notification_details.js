@@ -61,48 +61,128 @@ $('#submit-comment').on('click', function() {
     });
 });
 
-// Send SMS for Interview
+// Send SMS for Interview and update request status to Processing
 $('#send-sms-interview').on('click', function() {
-    var notificationId = $(this).data('notification-id');
-    var mobile = $('#mobile-interview').val();
-    var message = $('#message-interview').val();
+    var notificationId = $(this).data('notification-id');  // Get the notification ID
+    var mobile = $('#mobile-interview').val();  // Get the mobile number from input
+    var message = $('#message-interview').val();  // Get the message from input
 
+    // First, update the status to "Processing"
     $.ajax({
-        url: 'send_sms.php',
+        url: 'update_request_status.php',  // Updated script to handle dynamic status update
         type: 'POST',
         data: {
             notification_id: notificationId,
-            mobile: mobile,
-            message: message
+            status: 'Processing'  // We are setting the status to "Processing"
         },
         success: function(response) {
-            alert(response);  // Alert will show success or error message
+            if (response.success) {
+                // Status updated successfully, now attempt to send the SMS
+                $.ajax({
+                    url: 'send_sms.php',  // Backend script to handle SMS sending
+                    type: 'POST',
+                    data: {
+                        notification_id: notificationId,
+                        mobile: mobile,
+                        message: message
+                    },
+                    success: function(smsResponse) {
+                        alert(smsResponse);  // Display success or error message from send_sms.php
+                    },
+                    error: function() {
+                        alert('Error sending SMS.');
+                    }
+                });
+            } else {
+                alert('Error updating request status: ' + response.message);
+            }
         },
         error: function() {
-            alert('Error sending SMS for Interview.');
+            alert('Error updating request status.');
         }
     });
 });
 
-// Send SMS for Payout
-$('#send-sms-payout').on('click', function() {
-    var notificationId = $(this).data('notification-id');
-    var mobile = $('#mobile-payout').val();
-    var message = $('#message-payout').val();
 
+$('#send-sms-payout').on('click', function() {
+    var notificationId = $(this).data('notification-id');  // Get the notification ID from button data attribute
+    var mobile = $('#mobile-payout').val();  // Get the mobile number
+    var message = $('#message-payout').val();  // Get the SMS message
+
+    // Step 1: Update the request status to "Processing"
     $.ajax({
-        url: 'send_sms.php',
+        url: 'update_request_status.php',  // Backend script to update the status
         type: 'POST',
         data: {
             notification_id: notificationId,
-            mobile: mobile,
-            message: message
+            status: 'Processing'  // Set the status to "Processing"
         },
         success: function(response) {
-            alert(response);  // Alert will show success or error message
+            if (response.success) {
+                // Status updated successfully, now send the SMS
+                $.ajax({
+                    url: 'send_sms.php',  // Backend script to send SMS
+                    type: 'POST',
+                    data: {
+                        notification_id: notificationId,
+                        mobile: mobile,
+                        message: message
+                    },
+                    success: function(smsResponse) {
+                        alert(smsResponse);  // Show the response from the send_sms.php
+                    },
+                    error: function() {
+                        alert('Error sending SMS for Payout.');
+                    }
+                });
+            } else {
+                // Handle error in updating request status
+                alert('Error updating request status: ' + response.message);
+            }
         },
         error: function() {
-            alert('Error sending SMS for Payout.');
+            // Handle AJAX error
+            alert('Error updating request status.');
         }
     });
+});
+
+
+//Deny Request button
+document.getElementById('deny-request').addEventListener('click', function() {
+    var notificationId = this.getAttribute('data-notification-id');
+    
+    if (confirm('Are you sure you want to deny this request?')) {
+        console.log('Deny button clicked, sending request...');
+
+        $.ajax({
+            url: 'update_request_status.php',  // PHP file that handles the request
+            type: 'POST',
+            data: { 
+                notification_id: notificationId,  // Pass the notification ID
+                status: 'Denied'  // Pass the status as 'Denied'
+            },
+            success: function(response) {
+                console.log('Parsed response:', response);
+
+                if (response.success) {
+                    // Show a success message in the toast
+                    $('#commentToastBody').text(response.message);
+                    var toastElement = new bootstrap.Toast(document.getElementById('commentToast'));
+                    toastElement.show();
+
+                    // Optionally reload the page after a short delay to see the updated status
+                    setTimeout(function() {
+                        window.location.reload();  // Reload to reflect the status change
+                    }, 2000);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error: ' + error);
+                alert('Error: ' + error);
+            }
+        });
+    }
 });

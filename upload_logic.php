@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($uploadOk == 1) {
             $fileData = file_get_contents($fileTmpName);
             $fileType = mime_content_type($fileTmpName);
-            $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date, request_status) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'Pending')");
 
             // Concatenate first, middle, and last name to form client_name
             $clientName = trim($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']);

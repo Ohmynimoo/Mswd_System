@@ -1,0 +1,106 @@
+/* Circle-based Status UI styles */
+.status-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px auto;
+    width: 90%; /* Adjust width for responsiveness */
+    position: relative;
+}
+
+.status-step {
+    text-align: center;
+    position: relative;
+    flex: 1;
+}
+
+.status-circle {
+    width: 60px; /* Slightly larger */
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ddd;
+    border: 5px solid #ddd; /* Thicker border */
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 24px; /* For icons */
+    color: #fff;
+}
+
+.status-text {
+    margin-top: 15px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+/* Line connecting the circles */
+.status-step::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%; /* Start the line from the center of the circle */
+    width: 100%; /* Line connects to the next circle */
+    height: 8px; /* Thicker line */
+    background-color: #ddd;
+    z-index: 1;
+    transform: translateX(0) translateY(-50%);
+    transition: background-color 0.3s ease; /* Smooth transition for line color */
+}
+
+/* Remove line for the last step */
+.status-step:last-child::after {
+    display: none; /* No line after the last step */
+}
+
+/* Active and completed status - green */
+.status-circle.active,
+.status-circle.completed {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.status-text.active,
+.status-text.completed {
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* Completed lines - green */
+.status-step.completed::after {
+    background-color: #28a745; /* Green for completed steps */
+}
+
+/* Denied - red */
+.status-circle.denied {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.status-text.denied {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Denied lines - red */
+.status-step.denied::after {
+    background-color: #dc3545; /* Red for denied steps */
+}
+
+/* Pending status - yellow */
+.status-circle.pending {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.status-text.pending {
+    color: #ffc107;
+}
+
+/* Pending lines - yellow */
+.status-step.pending::after {
+    background-color: #ffc107; /* Yellow for pending steps */
+}

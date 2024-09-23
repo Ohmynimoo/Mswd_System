@@ -81,6 +81,12 @@ $conn->close();
             </a>
           </li>
           <li class="nav-item">
+              <a href="./request_status.php" class="nav-link">
+                <i class="nav-icon fas fa-user"></i>
+                <p>Status</p>
+              </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#" role="button" data-widget="pushmenu">
               <i class="nav-icon far fa-bell"></i>
               <p>
