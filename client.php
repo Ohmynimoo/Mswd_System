@@ -6,19 +6,7 @@ if (!isset($_SESSION['userid'])) {
     exit();
 }
 
-// Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "mswd_system";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'config.php';
 
 // Fetch user information
 $userId = $_SESSION['userid'];
@@ -45,6 +33,7 @@ $conn->close();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Client Dashboard</title>
+    <link rel="icon" href="dist/img/mswdLogo.png" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
@@ -64,6 +53,11 @@ $conn->close();
     </style>
 </head>
 <body class="hold-transition sidebar-mini">
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__shake" src="dist/img/MSWD.png" alt="image Logo" height="200" width="200">
+    <h2>Loading...</h2>
+  </div>
 <div class="wrapper">
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <ul class="navbar-nav">
@@ -121,18 +115,13 @@ $conn->close();
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" role="button" data-widget="pushmenu">
-                            <i class="nav-icon far fa-bell"></i>
+                        <a href="view_comments.php" class="nav-link">
+                            <i class="far fa-bell"></i>
                             <p>
                                 Notifications
                                 <span class="right badge badge-warning" id="notification-count">0</span>
                             </p>
                         </a>
-                        <ul class="nav nav-treeview" id="notification-menu">
-                            <li class="nav-item">
-                                <a class="nav-link">No Notifications</a>
-                            </li>
-                        </ul>
                     </li>
                     <li class="nav-item">
                         <a href="logout.php" class="nav-link">
@@ -272,5 +261,10 @@ $conn->close();
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist/js/adminlte.js"></script>
 <script src="client.js"></script>
+<script>
+    function redirectToUpload(category) {
+    window.location.href = 'upload.php?category=' + encodeURIComponent(category);
+}
+</script>
 </body>
 </html>

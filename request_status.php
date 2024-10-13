@@ -1,16 +1,6 @@
 <?php
-session_start();    
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "mswd_system";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+session_start();
+include 'config.php';
 
 $userId = $_SESSION['userid'];
 
@@ -46,7 +36,29 @@ if ($result->num_rows > 0) {
 
 $stmt->close();
 $conn->close();
+
+$statusMessages = [
+    'Pending' => 'Your uploaded files are being validated by the MSWDO of Bulan Sorsogon. Please wait for an SMS notification or monitor your notifications and request status.',
+    'Processing' => 'Your request is processing please bring the physical requirements to the MSWDO office for an interview. We will notify you once completed.',
+    'Approved' => 'Congratulations! Your request has been approved by the MSWDO. Please visit the treasury office for payout.',
+    'Denied' => 'Unfortunately, your request has been denied due to insufficient funds. Please visit the MSWD office for clarification.',
+    'No Request Found' => 'No request found. Please submit a request to track its status here.'
+];
+
+$statusMessage = isset($statusMessages[$requestStatus]) ? $statusMessages[$requestStatus] : 'Unknown status.';
+
+// Define CSS classes for status colors
+$statusColors = [
+    'Pending' => 'pending-status',
+    'Processing' => 'processing-status',
+    'Approved' => 'approved-status',
+    'Denied' => 'denied-status',
+    'No Request Found' => 'no-request-status'
+];
+
+$statusColorClass = isset($statusColors[$requestStatus]) ? $statusColors[$requestStatus] : 'unknown-status';
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,6 +70,11 @@ $conn->close();
     <link rel="stylesheet" href="request_status.css">
 </head>
 <body class="hold-transition sidebar-mini">
+    <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__shake" src="dist/img/MSWD.png" alt="image Logo" height="200" width="200">
+    <h2>Loading...</h2>
+  </div>
 <div class="wrapper">
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <ul class="navbar-nav">
@@ -103,18 +120,13 @@ $conn->close();
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" role="button" data-widget="pushmenu">
-                            <i class="nav-icon far fa-bell"></i>
+                        <a href="view_comments.php" class="nav-link">
+                            <i class="far fa-bell"></i>
                             <p>
                                 Notifications
                                 <span class="right badge badge-warning" id="notification-count">0</span>
                             </p>
                         </a>
-                        <ul class="nav nav-treeview" id="notification-menu">
-                            <li class="nav-item">
-                                <a class="nav-link">No Notifications</a>
-                            </li>
-                        </ul>
                     </li>
                     <li class="nav-item">
                         <a href="logout.php" class="nav-link">
@@ -138,6 +150,7 @@ $conn->close();
                 </div>
             </div>
         </section>
+
         <!-- Status display -->
         <section class="content">
             <div class="container-fluid">
@@ -146,63 +159,113 @@ $conn->close();
                         <h3 class="card-title">Your Request Status</h3>
                     </div>
                     <div class="card-body">
-                    <div class="status-container">
-                        <!-- Pending Status -->
-                        <div class="status-step <?php echo ($requestStatus == 'Pending' || $requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>">
-                            <div class="status-circle 
-                            <?php echo ($requestStatus == 'Pending') ? 'active pending' : ''; ?>" data-tooltip="Your request is pending approval">
-                                <i class="fas fa-clock"></i>
+                        <div class="status-container">
+                            <!-- Status Timeline (visual progress) -->
+                            <div class="status-step <?php echo ($requestStatus == 'Pending' || $requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>">
+                                <div class="status-circle <?php echo ($requestStatus == 'Pending') ? 'active pending' : ''; ?>" data-tooltip="Your request is pending approval">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="status-line <?php echo ($requestStatus == 'Pending' || $requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
+                                <div class="status-text <?php echo ($requestStatus == 'Pending') ? 'active pending' : ''; ?>">Pending</div>
                             </div>
-                            <div class="status-line <?php echo ($requestStatus == 'Pending' || $requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
-                            <div class="status-text 
-                            <?php echo ($requestStatus == 'Pending') ? 'active pending' : ''; ?>">Pending</div>
+
+                            <div class="status-step <?php echo ($requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>">
+                                <div class="status-circle <?php echo ($requestStatus == 'Processing') ? 'active' : ''; ?>" data-tooltip="Your request is being processed">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                                <div class="status-line <?php echo ($requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
+                                <div class="status-text <?php echo ($requestStatus == 'Processing') ? 'active' : ''; ?>">Processing</div>
+                            </div>
+
+                            <div class="status-step <?php echo ($requestStatus == 'Approved') ? 'completed' : ''; ?>">
+                                <div class="status-circle <?php echo ($requestStatus == 'Approved') ? 'completed active' : ''; ?>" data-tooltip="Your request has been approved">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="status-line <?php echo ($requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
+                                <div class="status-text <?php echo ($requestStatus == 'Approved') ? 'completed active' : ''; ?>">Approved</div>
+                            </div>
+
+                            <div class="status-step <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>">
+                                <div class="status-circle <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>" data-tooltip="Your request has been denied">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="status-line <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>"></div>
+                                <div class="status-text <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>">Denied</div>
+                            </div>
                         </div>
 
-                        <!-- Processing Status -->
-                        <div class="status-step <?php echo ($requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>">
-                              <div class="status-circle 
-                            <?php echo ($requestStatus == 'Processing') ? 'active' : ''; ?>" data-tooltip="Your request is being processed">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                            <div class="status-line <?php echo ($requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
-                            <div class="status-text 
-                            <?php echo ($requestStatus == 'Processing') ? 'active' : ''; ?>">Processing</div>
-                        </div>
-
-                        <!-- Approved Status -->
-                        <div class="status-step <?php echo ($requestStatus == 'Approved') ? 'completed' : ''; ?>">
-                            <div class="status-circle <?php echo ($requestStatus == 'Approved') ? 'completed active' : ''; ?>" data-tooltip="Your request has been approved">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="status-line <?php echo ($requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
-                            <div class="status-text <?php echo ($requestStatus == 'Approved') ? 'completed active' : ''; ?>">Approved</div>
-                        </div>
-
-                        <!-- Denied Status -->
-                        <div class="status-step <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>">
-                            <div class="status-circle <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>" data-tooltip="Your request has been denied">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                            <div class="status-line <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>"></div>
-                            <div class="status-text <?php echo ($requestStatus == 'Denied') ? 'denied' : ''; ?>">Denied</div>
+                        <!-- Status Message Display -->
+                        <div class="status-message <?php echo $statusColorClass; ?> mt-4">
+                            <p><strong>Status: </strong><?php echo htmlspecialchars($requestStatus); ?></p>
+                            <p><?php echo htmlspecialchars($statusMessage); ?></p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
-    <footer class="main-footer">
-        <strong>&copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
-        All rights reserved.
-        <div class="float-right d-none d-sm-inline-block">
-            <b>Version</b> 3.2.0
-        </div>
-    </footer>
+        </section>
+    </div>
 </div>
 
 <script src="plugins/jquery/jquery.min.js"></script>
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist/js/adminlte.min.js"></script>
+<script>
+    $(document).ready(function() {
+    function fetchNotifications() {
+        $.ajax({
+            type: 'GET',
+            url: 'client_notifications.php',
+            dataType: 'json',
+            success: function(data) {
+                var notificationMenuHtml = '';
+
+                if (Array.isArray(data) && data.length > 0) {
+                    $('#notification-count').text(data.length);
+                    $.each(data, function(index, notification) {
+                        var notificationHtml = '<li class="nav-item dropdown-item notification-link" data-id="' + notification.id + '">';
+                        notificationHtml += '<div class="notification-message ' + (notification.is_read === 0 ? 'unread' : '') + '">Comment in your request</div>';
+                        notificationHtml += '</li>';
+                        notificationMenuHtml += notificationHtml;
+                    });
+                } else {
+                    $('#notification-count').text(0);
+                    notificationMenuHtml = '<li class="nav-item dropdown-item"><a class="nav-link">No notifications found.</a></li>';
+                }
+
+                $('#notification-menu').html(notificationMenuHtml);
+            },
+            error: function(xhr, status, error) {
+                alert('Error fetching notifications!');
+            }
+        });
+    }
+
+    // Fetch notifications when the page loads
+    fetchNotifications();
+
+    // Handle click on notification
+    $('#notification-menu').on('click', '.notification-link', function(event) {
+        event.preventDefault();
+        var notificationId = $(this).data('id');
+        var notificationLink = 'view_comments.php?notification_id=' + notificationId;
+
+        // Mark as read
+        $.ajax({
+            type: 'POST',
+            url: 'mark_as_read.php',
+            data: { id: notificationId },
+            success: function(response) {
+                var currentCount = parseInt($('#notification-count').text());
+                $('#notification-count').text(currentCount - 1);
+                $(this).find('.notification-message').removeClass('unread'); // Remove unread class
+                window.location.href = notificationLink; // Redirect to notification details
+            }.bind(this) // Bind the context to the current element
+        });
+    });
+
+    // Fetch notifications periodically, e.g., every 30 seconds
+    setInterval(fetchNotifications, 30000);
+});
+</script>
 </body>
 </html>

@@ -15,7 +15,7 @@ $(document).ready(function() {
         $.each(data, function(index, notification) {
           var notificationHtml = '<li class="nav-item">';
           notificationHtml += '<a class="nav-link notification-link ' + (notification.read === 0 ? 'unread' : '') + '" data-id="' + notification.id + '">';
-          notificationHtml += '<div class="notification-message">' + notification.message + '</div>';
+          notificationHtml += '<div class="notification-message">' + notification.message + '</div>';  // Display the full message
           notificationHtml += '</a></li>';
           notificationMenuHtml += notificationHtml;
         });

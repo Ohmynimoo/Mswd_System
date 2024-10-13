@@ -10,7 +10,6 @@
 </head>
 
 <body>
-
     <!-- Top Navigation Bar -->
     <nav class="top-nav">
         <div class="nav-container">
@@ -123,7 +122,7 @@
 
     <!-- Contact Us Section -->
     <section id="contact">
-        <div class="fixed-container">
+        <div class="fixed-container contact-section">
             <h2>Contact Us</h2>
             <p>If you have any questions or need assistance, please do not hesitate to reach out to us. We are here to help and support you in any way we can. You can contact us through the following means:</p>
 
@@ -143,6 +142,7 @@
             </div>
         </div>
     </section>
+
 
     <!-- Link to external JS file -->
     <script src="landing_page.js"></script>

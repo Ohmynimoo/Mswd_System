@@ -2,7 +2,7 @@
 // Include database connection
 include 'config.php';
 
-$apiKey = 'deff2993b2ac14211fab692061d13ba1';  // Semaphore API key
+$apiKey = '835e27f0e53ed54628a0e3a4d7a6fcdf';  // Semaphore API key
 
 $mobile = $_POST['mobile'];
 $message = $_POST['message'];
@@ -19,7 +19,7 @@ $data = array(
     'apikey' => $apiKey, 
     'number' => $mobile, 
     'message' => $message, 
-    'sendername' => 'SEMAPHORE'  // Sender name (optional, based on Semaphore account)
+    'sendername' => 'Thesis'  // Sender name (optional, based on Semaphore account)
 );
 
 $ch = curl_init('https://semaphore.co/api/v4/messages');

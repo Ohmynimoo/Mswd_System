@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const hero = document.querySelector('.hero');
     const heroBackgrounds = [
-        'dist/img/Page1.jpg',
-        'dist/img/Page0.jpg',
-        'dist/img/Page3.jpg',
-        'dist/img/Page4.jpg',
-        'dist/img/Page5.jpg',
+        'dist/img/shelterAss.png',
+        'dist/img/transpoAss.png',
+        'dist/img/othersubAss.png',
+        'dist/img/medAss.png',
+        'dist/img/livelihoodAss.png',
         'dist/img/Page6.jpg'
     ];
     let currentBackgroundIndex = 0;

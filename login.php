@@ -1,21 +1,6 @@
 <?php
-// login.php
-
 session_start();
-
-// Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "mswd_system";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mobile = htmlspecialchars(trim($_POST['mobile']));
@@ -83,6 +68,11 @@ $conn->close();
 </head>
 <body class="hold-transition login-page">
 <div class="login-box">
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__shake" src="dist/img/MSWD.png" alt="image Logo" height="200" width="200">
+    <h2>Loading...</h2>
+  </div>
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
       <div class="row">
@@ -125,6 +115,12 @@ $conn->close();
           </div>
         </div>
       </form>
+      <!-- Back Button to redirect to index.php -->
+      <div class="row mt-2">
+        <div class="col-12">
+          <a href="index.php" class="btn btn-secondary btn-block">Back</a>
+        </div>
+      </div>
       <p class="mb-0">
         <a href="register.php" class="text-center">New client? Click here to register</a>
       </p>

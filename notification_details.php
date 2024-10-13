@@ -1,11 +1,11 @@
 <?php
-// notification_details.php
+// Include the database connection
 include 'config.php';
 
 if (isset($_GET['id'])) {
-    $notificationId = $_GET['id'];
+    $notificationId = $_GET['id'];  // Fetch the notification ID from the URL (or wherever it comes from)
 
-    // Modify the query to include the category
+    // Fetch notification and related user details
     $query = "
     SELECT 
         notifications.*,
@@ -23,7 +23,6 @@ if (isset($_GET['id'])) {
     INNER JOIN uploads ON FIND_IN_SET(uploads.id, notifications.file_ids)
     INNER JOIN users ON uploads.user_id = users.id
     WHERE notifications.id = ?";
-
     
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $notificationId);
@@ -35,7 +34,7 @@ if (isset($_GET['id'])) {
     // Fetch the files associated with the notification
     $fileIds = explode(',', $notification['file_ids']);
     $fileIdsString = implode("','", $fileIds);
-    $fileQuery = "SELECT filename, file_type, file_data FROM uploads WHERE id IN ('$fileIdsString')";
+    $fileQuery = "SELECT id, filename, file_type, file_data FROM uploads WHERE id IN ('$fileIdsString')";
     $fileResult = $conn->query($fileQuery);
 
     $files = [];
@@ -43,6 +42,7 @@ if (isset($_GET['id'])) {
         while ($row = $fileResult->fetch_assoc()) {
             $fileData = base64_encode($row['file_data']);
             $files[] = [
+                'id' => $row['id'],
                 'filename' => $row['filename'],
                 'file_type' => $row['file_type'],
                 'file_data' => 'data:'. $row['file_type']. ';base64,'. $fileData
@@ -50,6 +50,26 @@ if (isset($_GET['id'])) {
         }
     }
 
+   // Fetch re-uploaded files for the notification
+    $reuploadQuery = "SELECT filename, file_type, file_data FROM reuploaded_files WHERE notification_id = ?";
+    $stmt = $conn->prepare($reuploadQuery);
+    $stmt->bind_param("i", $notificationId);
+    $stmt->execute();
+    $reuploadResult = $stmt->get_result();
+
+    $reuploadedFiles = [];
+    if ($reuploadResult->num_rows > 0) {
+        while ($row = $reuploadResult->fetch_assoc()) {
+            $fileData = base64_encode($row['file_data']);
+            $reuploadedFiles[] = [
+                'filename' => $row['filename'],
+                'file_type' => $row['file_type'],
+                'file_data' => 'data:'. $row['file_type']. ';base64,'. $fileData
+            ];
+        }
+    }
+
+    $stmt->close();
     $conn->close();
 } else {
     echo "No notification ID provided.";
@@ -79,7 +99,6 @@ if (isset($_GET['id'])) {
         </ul>
     </nav>
 
-    <!-- Updated Sidebar Menu -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
         <a href="index3.html" class="brand-link">
             <img src="dist/img/mswdLogo.png" alt="MSWDO Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
@@ -138,7 +157,7 @@ if (isset($_GET['id'])) {
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>Assistance Request</h1>
+                        <h1>Validate Clients Assistance Request</h1>
                     </div>
                 </div>
             </div>
@@ -153,51 +172,74 @@ if (isset($_GET['id'])) {
                     </div>
                     <div class="card-body notification-details">
                         <h5><strong>Personal Information of the Client</strong></h5>
-                        <!-- Personal details in horizontal layout using Bootstrap grid -->
-                        <div class="row mb-10">
-                            <div class="col-md-2">
-                                <strong>First Name:</strong> <?php echo htmlspecialchars($notification['first_name']); ?>
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Middle Name:</strong> <?php echo htmlspecialchars($notification['middle_name']); ?>
-                            </div>
-                            <div class="col-md-2">
-                                <strong>Last Name:</strong> <?php echo htmlspecialchars($notification['last_name']); ?>
-                            </div>
-                        </div>
-                        <div class="row mb-10">
-                            <div class="col-md-2">
-                                <strong>Mobile:</strong> <?php echo htmlspecialchars($notification['mobile']); ?>
-                            </div>
-                            <div class="col-md-2">
-                                <strong>Birthday:</strong> <?php echo htmlspecialchars($notification['birthday']); ?>
-                            </div>
-                            <div class="col-md-2">
-                                <strong>Gender:</strong> <?php echo htmlspecialchars($notification['gender']); ?>
-                            </div>
-                        </div>
-                        <div class="row mb-10">
-                            <div class="col-md-6">
-                                <strong>Address:</strong> <?php echo htmlspecialchars($notification['address']); ?>
-                            </div>
-                            <div class="col-md-10">
-                                <strong>Birthplace:</strong> <?php echo htmlspecialchars($notification['birthplace']); ?>
-                            </div>
-                        </div>
-                        <div class="row mb-10">
-                            <div class="col-md-10">
-                                <strong>Category:</strong> <?php echo htmlspecialchars($notification['category']); ?>
-                            </div>
-                        </div>
                         
-                        <h5 class="mt-4"><strong>Uploaded Files:</strong></h5>
+                        <!-- Use Bootstrap table for structured layout -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <tbody>
+                                    <tr>
+                                        <th>First Name</th>
+                                        <td><?php echo htmlspecialchars($notification['first_name']); ?></td>
+                                        <th>Middle Name</th>
+                                        <td><?php echo htmlspecialchars($notification['middle_name']); ?></td>
+                                        <th>Last Name</th>
+                                        <td><?php echo htmlspecialchars($notification['last_name']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mobile</th>
+                                        <td><?php echo htmlspecialchars($notification['mobile']); ?></td>
+                                        <th>Birthday</th>
+                                        <td><?php echo htmlspecialchars($notification['birthday']); ?></td>
+                                        <th>Gender</th>
+                                        <td><?php echo htmlspecialchars($notification['gender']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address</th>
+                                        <td colspan="5"><?php echo htmlspecialchars($notification['address']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Birthplace</th>
+                                        <td colspan="5"><?php echo htmlspecialchars($notification['birthplace']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Category</th>
+                                        <td colspan="5"><?php echo htmlspecialchars($notification['category']); ?></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    
+                        // Display original files
+                        <h5 class="mt-4"><strong>Original Files:</strong></h5>
                         <div class="uploaded-files-container">
                             <div class="uploaded-files">
-                                <?php foreach ($files as $file): ?>
-                                    <img src="<?php echo $file['file_data']; ?>" alt="<?php echo htmlspecialchars($file['filename']); ?>" class="enlarge-image">
-                                <?php endforeach; ?>
+                                <?php
+                                // Display original files
+                                foreach ($files as $file) {
+                                    echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
+                                }
+                                ?>
                             </div>
                         </div>
+
+                        // Display re-uploaded files
+                        <h5 class="mt-4"><strong>Re-Uploaded Files:</strong></h5>
+                        <div class="uploaded-files-container">
+                            <div class="uploaded-files">
+                                <?php
+                                // Display re-uploaded files
+                                if (!empty($reuploadedFiles)) {
+                                    foreach ($reuploadedFiles as $file) {
+                                        echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
+                                    }
+                                } else {
+                                    echo "<p>No re-uploaded files.</p>";
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+
 
                         <div class="form-group mt-3">
                             <label for="comment">Comment:</label>
@@ -264,6 +306,7 @@ if (isset($_GET['id'])) {
         </section>
     </div>
 </div>
+
 <!-- Modal for enlarging images -->
 <div id="lightboxModal" class="modal">
     <span class="close">&times;</span>

@@ -71,6 +71,12 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
             </a>
           </li>
           <li class="nav-item">
+            <a href="clients_table.php" class="nav-link">
+              <i class="nav-icon far fa-bell"></i>
+              <p>Clients</p>
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#" role="button" data-widget="pushmenu">
               <i class="nav-icon far fa-bell"></i>
               <p>
@@ -175,7 +181,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
 <script src="notifications.js"></script>
 <script>
     let currentChart;  // Store reference to the current chart
-
     function fetchData(year, startMonth, endMonth) {
         return $.ajax({
             url: 'data_visualization.php',
@@ -188,17 +193,14 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
             dataType: 'json'
         });
     }
-
     function updateChart(type, data) {
         if (currentChart) {
             currentChart.destroy();  // Destroy previous chart instance
         }
-
         const labels = data.map(item => `${item.month}/${item.year}`);
         const lguData = data.map(item => item.lgu_count);
         const barangayData = data.map(item => item.barangay_count);
         const skData = data.map(item => item.sk_count);
-
         const chartData = {
             labels: labels,
             datasets: [
@@ -219,7 +221,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
                 }
             ]
         };
-
         currentChart = new Chart(document.getElementById('dynamicChart').getContext('2d'), {
             type: type,  // Chart type (bar, pie, line, etc.)
             data: chartData,
@@ -243,7 +244,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
             }
         });
     }
-
     document.getElementById('chart-type').addEventListener('change', function() {
         const selectedType = this.value;
         const year = $('#year').val();
@@ -277,6 +277,5 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
         });
     });
 </script>
-
 </body>
 </html>

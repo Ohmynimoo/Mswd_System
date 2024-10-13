@@ -20,14 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($password !== $repassword) {
         $error = "Passwords do not match.";
     } else {
-        // Check if the mobile number already exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE mobile = ?");
-        $stmt->bind_param("s", $mobile);
+        // Check if a user with the same critical fields already exists (ignoring mobile)
+        $stmt = $conn->prepare("SELECT id FROM users WHERE first_name = ? AND middle_name = ? AND last_name = ? AND birthday = ? AND address = ? AND birthplace = ? AND gender = ?");
+        $stmt->bind_param("sssssss", $first_name, $middle_name, $last_name, $birthday, $address, $birthplace, $gender);
         $stmt->execute();
-        $stmt->store_result();
+        $stmt->store_result();  
 
         if ($stmt->num_rows > 0) {
-            $error = "Mobile number already registered.";
+            // User with these details already exists
+            $error = "A user with these details is already registered. Please check your information.";
         } else {
             // Hash the password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -75,8 +76,15 @@ $conn->close();
     <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
     <link rel="stylesheet" href="plugins/bootstrap/css/bootstrap.min.css">
+    
 </head>
+
 <body class="hold-transition register-page">
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__shake" src="dist/img/MSWD.png" alt="image Logo" height="200" width="200">
+    <h2>Loading...</h2>
+  </div>
 <div class="register-box">
     <div class="card card-outline card-primary">
         <div class="card-header text-center">
@@ -93,6 +101,7 @@ $conn->close();
         <div class="card-body">
             <p class="login-box-msg">Register for your request</p>
 
+            <!-- Error message for duplicate user -->
             <?php if (isset($error)): ?>
                 <div class="alert alert-danger"><?php echo $error; ?></div>
             <?php endif; ?>
@@ -134,7 +143,7 @@ $conn->close();
                     </div>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="date" class="form-control" placeholder="Birthday" name="birthday" value="<?php echo isset($birthday) ? htmlspecialchars($birthday) : ''; ?>" required>
+                    <input type="text" class="form-control" id="birthday" name="birthday" placeholder="Birthday" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" value="<?php echo isset($birthday) ? htmlspecialchars($birthday) : ''; ?>" required>
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <span class="fas fa-calendar"></span>
@@ -240,4 +249,3 @@ $conn->close();
 <script src="dist/js/adminlte.min.js"></script>
 </body>
 </html>
-

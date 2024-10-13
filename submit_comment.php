@@ -5,7 +5,13 @@ include 'config.php';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $notificationId = $_POST['notification_id'];
     $comment = $_POST['comment'];
-    $userId = $_SESSION['userid'];
+    
+    // Check if the user is logged in or not
+    if (isset($_SESSION['userid'])) {
+        $userId = $_SESSION['userid']; // Logged-in user's ID
+    } else {
+        $userId = 1; // Assign to "Anonymous User" with ID = 1
+    }
 
     $conn->begin_transaction();
 
@@ -57,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $clientNotificationId = $stmt->insert_id;
         $stmt->close();
 
-        // Insert the comment
+        // Insert the comment, using anonymous user ID (1) if not logged in
         $query = "INSERT INTO comments (notification_id, user_id, comment) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($query);
         if (!$stmt) {

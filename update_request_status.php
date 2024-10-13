@@ -5,7 +5,10 @@ header('Content-Type: application/json');  // Ensure the response is in JSON for
 
 if (isset($_POST['notification_id']) && isset($_POST['status'])) {
     $notificationId = $_POST['notification_id'];
-    $status = $_POST['status'];  // Status is passed dynamically (e.g., 'Processing')
+    $status = $_POST['status'];  // Status is passed dynamically (e.g., 'Processing', 'Approved', etc.)
+
+    // Check what status is being received
+    error_log('Received Status: ' . $status);
 
     // Fetch the file_ids associated with the notification
     $query = "SELECT file_ids FROM notifications WHERE id = ?";
@@ -30,11 +33,16 @@ if (isset($_POST['notification_id']) && isset($_POST['status'])) {
         // Bind the dynamic status and the file IDs
         $types = 's' . str_repeat('i', count($fileIdArray));  // 's' for status, 'i' for file IDs
         $updateStmt->bind_param($types, $status, ...$fileIdArray);
-        
+
+        // Log the query for debugging (remove in production)
+        error_log('Update Query: ' . $updateQuery);
+
         // Execute the update query
         if ($updateStmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Request status updated to ' . $status . '.']);
         } else {
+            // Log MySQL error if query fails
+            error_log('MySQL Error: ' . $conn->error);
             echo json_encode(['success' => false, 'message' => 'Failed to update request status.']);
         }
 

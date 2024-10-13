@@ -2,18 +2,7 @@
 session_start();
 
 // Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "mswd_system";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'config.php';
 
 $userId = $_SESSION['userid'];
 $updateSuccess = false;  // Flag to track if update is successful
@@ -83,6 +72,11 @@ $conn->close();
 
 </head>
 <body class="hold-transition sidebar-mini">
+    <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__shake" src="dist/img/MSWD.png" alt="image Logo" height="200" width="200">
+    <h2>Loading...</h2>
+  </div>
 <div class="wrapper">
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <ul class="navbar-nav">
@@ -129,18 +123,13 @@ $conn->close();
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" role="button" data-widget="pushmenu">
-                            <i class="nav-icon far fa-bell"></i>
+                        <a href="view_comments.php" class="nav-link">
+                            <i class="far fa-bell"></i>
                             <p>
                                 Notifications
                                 <span class="right badge badge-warning" id="notification-count">0</span>
                             </p>
                         </a>
-                        <ul class="nav nav-treeview" id="notification-menu">
-                            <li class="nav-item">
-                                <a class="nav-link">No Notifications</a>
-                            </li>
-                        </ul>
                     </li>
                     <li class="nav-item">
                         <a href="logout.php" class="nav-link">

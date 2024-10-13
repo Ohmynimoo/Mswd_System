@@ -104,3 +104,33 @@
 .status-step.pending::after {
     background-color: #ffc107; /* Yellow for pending steps */
 }
+/* Tooltips for status icons */
+.status-circle[data-tooltip] {
+    position: relative;
+}
+
+.status-circle[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -35px;
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+/* Status specific colors */
+.pending-status { background-color: #ffeb3b; color: #856404; }
+.processing-status { background-color: #2196f3; color: #fff; }
+.approved-status { background-color: #4caf50; color: #fff; }
+.denied-status { background-color: #f44336; color: #fff; }
+.no-request-status { background-color: #e0e0e0; color: #424242; }
+
+.status-message {
+    padding: 20px;
+    border-radius: 5px;
+    margin: 20px 0;
+    font-size: 18px;
+    line-height: 1.5;
+}

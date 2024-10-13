@@ -1,7 +1,3 @@
-function redirectToUpload(category) {
-    window.location.href = 'upload.php?category=' + encodeURIComponent(category);
-}
-
 $(document).ready(function() {
     function fetchNotifications() {
         $.ajax({

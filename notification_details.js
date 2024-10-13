@@ -1,4 +1,3 @@
-
 // Image Modal Logic
 var modal = document.getElementById("lightboxModal");
 var modalImg = document.getElementById("modalImage");
@@ -103,25 +102,26 @@ $('#send-sms-interview').on('click', function() {
     });
 });
 
-
+//Send sms for payout and update request status to approved
 $('#send-sms-payout').on('click', function() {
-    var notificationId = $(this).data('notification-id');  // Get the notification ID from button data attribute
-    var mobile = $('#mobile-payout').val();  // Get the mobile number
-    var message = $('#message-payout').val();  // Get the SMS message
+    var notificationId = $(this).data('notification-id');
+    var mobile = $('#mobile-payout').val();
+    var message = $('#message-payout').val();
 
-    // Step 1: Update the request status to "Processing"
+    // Step 1: Update the request status to "Approved"
     $.ajax({
-        url: 'update_request_status.php',  // Backend script to update the status
+        url: 'update_request_status.php',
         type: 'POST',
         data: {
             notification_id: notificationId,
-            status: 'Processing'  // Set the status to "Processing"
+            status: 'Approved'  // Set the status to "Approved"
         },
         success: function(response) {
+            console.log('Status update response:', response);  // Log the response to ensure status was updated
             if (response.success) {
                 // Status updated successfully, now send the SMS
                 $.ajax({
-                    url: 'send_sms.php',  // Backend script to send SMS
+                    url: 'send_sms.php',
                     type: 'POST',
                     data: {
                         notification_id: notificationId,
@@ -129,24 +129,21 @@ $('#send-sms-payout').on('click', function() {
                         message: message
                     },
                     success: function(smsResponse) {
-                        alert(smsResponse);  // Show the response from the send_sms.php
+                        alert(smsResponse);  // Show the SMS response
                     },
                     error: function() {
                         alert('Error sending SMS for Payout.');
                     }
                 });
             } else {
-                // Handle error in updating request status
                 alert('Error updating request status: ' + response.message);
             }
         },
         error: function() {
-            // Handle AJAX error
             alert('Error updating request status.');
         }
     });
 });
-
 
 //Deny Request button
 document.getElementById('deny-request').addEventListener('click', function() {
