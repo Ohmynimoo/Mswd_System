@@ -129,7 +129,6 @@
   <script src="dist/js/adminlte.min.js"></script>
 
   <!-- Table Initialization -->
-  
   <script>
   $(document).ready(function() {
     // Destroy the DataTable if it already exists to avoid duplication
@@ -138,12 +137,18 @@
     }
 
     // Initialize the DataTable
-    $('#clientsTable').DataTable({
+    var table = $('#clientsTable').DataTable({
       "ajax": {
-        "url": "fetch_clients.php", // Ensure this fetches unique clients
-        "dataSrc": "",
+        "url": "fetch_clients.php",  // Ensure this is the correct endpoint
+        "dataSrc": function(json) {
+          // Filter out entries with birthday = "0000-00-00"
+          return json.filter(function(client) {
+            return client.birthday !== "0000-00-00";
+          });
+        },
+        "cache": false,
         "error": function(xhr, error, thrown) {
-          console.log("Response: ", xhr.responseText);
+          console.error("Error loading data:", xhr.responseText);
           alert("Failed to load data. Check console for details.");
         }
       },
@@ -152,7 +157,15 @@
         { "data": "last_name" },
         { "data": "middle_name" },
         { "data": "mobile" },
-        { "data": "birthday" },
+        {
+          "data": "birthday",
+          "render": function(data, type, row, meta) {
+            if (data === null || data === "0000-00-00" || data === "") {
+              return "N/A";  // Display 'N/A' for invalid dates
+            }
+            return data;  // Return valid birthday
+          }
+        },
         { "data": "address" },
         { "data": "birthplace" },
         {
@@ -167,8 +180,12 @@
         }
       ]
     });
+
+    // Reload table after an update
+    table.ajax.reload(null, false);
   });
-  </script>
+</script>
+
 
 </div>
 </body>

@@ -323,6 +323,55 @@ img.lazy-loaded {
     opacity: 1;
 }
 
+/* Footer Section */
+.footer {
+    background-color: #021940;  /* Darker blue */
+    color: #f4f4f4;  /* Light grey */
+    padding: 2rem 1rem;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.footer p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #f4f4f4;  /* Light grey */
+}
+
+.footer-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.footer-links li {
+    display: inline;
+}
+
+.footer-links li a {
+    color: #f4f4f4;  /* Light grey */
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.footer-links li a:hover {
+    color: #EB0E16;  /* Red */
+}
+
+
+
 /* Responsive Design for Assistance Boxes */
 @media (max-width: 768px) {
     .assistance-container {

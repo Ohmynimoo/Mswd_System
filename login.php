@@ -6,14 +6,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mobile = htmlspecialchars(trim($_POST['mobile']));
     $password = htmlspecialchars(trim($_POST['password']));
 
-    // Prepare and bind statement
+    // Uses a prepared statement to prevent SQL injection attacks.
     $stmt = $conn->prepare("SELECT id, password, is_admin FROM users WHERE mobile = ?");
     $stmt->bind_param("s", $mobile);
 
     // Execute the statement
     $stmt->execute();
 
-    // Bind result variables
+    // Bind the input result variables
     $stmt->bind_result($id, $hashed_password, $is_admin);
 
     // Fetch value

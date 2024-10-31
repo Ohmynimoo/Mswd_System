@@ -3,76 +3,122 @@ include 'config.php';
 
 header('Content-Type: application/json');
 
-// Check if the request method is PUT
-if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method. Use PUT for updates.']);
-    exit;
-}
+// Retrieve the main form data
+$id = $_POST['id'];
+$firstName = $_POST['firstName'];
+$lastName = $_POST['lastName'];
+$middleName = $_POST['middleName'];
+$age = $_POST['age'];
+$birthPlace = $_POST['birthPlace'];
+$address = $_POST['address'];
+$education = $_POST['education'];
+$income = $_POST['income'];
+$occupation = $_POST['occupation'];
+$mobileNumber = trim($_POST['mobileNumber']);
+$gender = $_POST['gender'];
+$clientType = $_POST['clientType'];
+$date = $_POST['date'];
+$assistanceType = $_POST['assistanceType'];
+$fundType = $_POST['fundType'];
+$amount = $_POST['amount'];
+$beneficiary = $_POST['beneficiary'];
 
-// Retrieve the raw JSON input and decode it
-$data = json_decode(file_get_contents('php://input'), true);
+// Family members data (sent as JSON string)
+$familyMembers = isset($_POST['familyMembers']) ? json_decode($_POST['familyMembers'], true) : [];
 
-// Check if data is properly received and required fields are present
-if (!$data || !isset($data['id']) || empty($data['firstName']) || empty($data['lastName']) || empty($data['age']) || empty($data['birthPlace']) || empty($data['address']) || empty($data['education']) || empty($data['income']) || empty($data['occupation']) || empty($data['mobileNumber']) || empty($data['gender']) || empty($data['clientType']) || empty($data['assistanceType']) || empty($data['fundType']) || empty($data['amount']) || empty($data['beneficiary'])) {
+// Validate required fields
+if (empty($firstName) || empty($lastName) || empty($age) || empty($birthPlace) || empty($address) || empty($education) || empty($income) || empty($occupation) || empty($mobileNumber) || empty($gender) || empty($clientType) || empty($assistanceType) || empty($fundType) || empty($amount) || empty($beneficiary)) {
     echo json_encode(['status' => 'error', 'message' => 'Required fields cannot be empty.']);
     exit;
 }
 
-// Assign variables from the JSON data
-$id = $data['id'];
-$firstName = $data['firstName'];
-$lastName = $data['lastName'];
-$middleName = $data['middleName'];
-$age = $data['age'];
-$birthPlace = $data['birthPlace'];
-$address = $data['address'];
-$education = $data['education'];
-$income = $data['income'];
-$occupation = $data['occupation'];
-$mobileNumber = $data['mobileNumber'];
-$gender = $data['gender'];
-$clientType = $data['clientType'];
-$date = $data['date'];
-$assistanceType = $data['assistanceType'];
-$fundType = $data['fundType'];
-$amount = $data['amount'];
-$beneficiary = $data['beneficiary'];
-
-// Establish a connection to the database
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    error_log("Connection failed: " . $conn->connect_error);
-    echo json_encode(['status' => 'error', 'message' => 'Failed to connect to database.']);
+// Validate mobile number (11 digits)
+if (!preg_match('/^\d{11}$/', $mobileNumber)) {
+    echo json_encode(['status' => 'error', 'message' => 'Mobile number must be exactly 11 digits.']);
     exit;
 }
 
-// Prepare the SQL query to update the record
-$sql = "UPDATE individuals SET 
-        firstName = '$firstName', 
-        lastName = '$lastName', 
-        middleName = '$middleName', 
-        age = '$age', 
-        birthPlace = '$birthPlace', 
-        address = '$address', 
-        education = '$education', 
-        income = '$income', 
-        occupation = '$occupation', 
-        mobileNumber = '$mobileNumber', 
-        gender = '$gender', 
-        clientType = '$clientType', 
-        date = '$date', 
-        assistanceType = '$assistanceType', 
-        fundType = '$fundType', 
-        amount = '$amount', 
-        beneficiary = '$beneficiary' 
-    WHERE id = '$id'";
+// Create a new database connection
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-if ($conn->query($sql) === TRUE) {
-    echo json_encode(['status' => 'success', 'message' => 'Record edited successfully.']);
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Error updating record: ' . $conn->error]);
+// Check the database connection
+if ($conn->connect_error) {
+    echo json_encode(['status' => 'error', 'message' => 'Connection failed: ' . $conn->connect_error]);
+    exit;
 }
 
+// Start transaction to ensure data consistency
+$conn->begin_transaction();
+
+try {
+    // Update the main individual record
+    $sql = "UPDATE individuals SET 
+            firstName = '$firstName', 
+            lastName = '$lastName', 
+            middleName = '$middleName', 
+            age = '$age', 
+            birthPlace = '$birthPlace', 
+            address = '$address', 
+            education = '$education', 
+            income = '$income', 
+            occupation = '$occupation', 
+            mobileNumber = '$mobileNumber', 
+            gender = '$gender', 
+            clientType = '$clientType', 
+            date = '$date', 
+            assistanceType = '$assistanceType', 
+            fundType = '$fundType', 
+            amount = '$amount', 
+            beneficiary = '$beneficiary' 
+        WHERE id = '$id'";
+
+    if (!$conn->query($sql)) {
+        throw new Exception('Error updating individual record: ' . $conn->error);
+    }
+
+    // Insert or update family members
+    foreach ($familyMembers as $familyMember) {
+        $familyMemberId = isset($familyMember['id']) ? $familyMember['id'] : null;
+        $familyFirstName = $familyMember['firstName'];
+        $familyLastName = $familyMember['lastName'];
+        $familyMiddleName = $familyMember['middleName'];
+        $familyDateOfBirth = $familyMember['dateOfBirth'];
+        $familyGender = $familyMember['gender'];
+        $familyRelationship = $familyMember['relationship'];
+
+        if ($familyMemberId) {
+            // Update existing family member
+            $sql = "UPDATE family_members SET 
+                    firstName = '$familyFirstName', 
+                    lastName = '$familyLastName', 
+                    middleName = '$familyMiddleName', 
+                    dateOfBirth = '$familyDateOfBirth', 
+                    gender = '$familyGender', 
+                    relationship = '$familyRelationship' 
+                WHERE id = '$familyMemberId' AND individual_id = '$id'";
+        } else {
+            // Insert new family member
+            $sql = "INSERT INTO family_members (individual_id, firstName, lastName, middleName, dateOfBirth, gender, relationship) VALUES 
+                    ('$id', '$familyFirstName', '$familyLastName', '$familyMiddleName', '$familyDateOfBirth', '$familyGender', '$familyRelationship')";
+        }
+
+
+
+
+        if (!$conn->query($sql)) {
+            throw new Exception('Error saving family member: ' . $conn->error);
+        }
+    }
+
+    // Commit the transaction
+    $conn->commit();
+    echo json_encode(['status' => 'success', 'message' => 'Record and family members updated successfully.']);
+} catch (Exception $e) {
+    // Rollback the transaction if something went wrong
+    $conn->rollback();
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+}
+
+// Close the connection
 $conn->close();
 ?>

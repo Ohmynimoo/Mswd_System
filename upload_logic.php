@@ -57,7 +57,7 @@ if ($userId) {
         // Process file uploads
         $files = $_FILES['files'];
         $uploadOk = 1;
-        $allowedTypes = ["jpg", "png", "jpeg", "gif"];
+        $allowedTypes = ["jpg", "jpeg", "png"];
         $uploadedFiles = [];
         $fileIds = [];  // Initialize fileIds array
 
@@ -65,28 +65,36 @@ if ($userId) {
         for ($i = 0; $i < count($files['name']); $i++) {
             $fileName = basename($files["name"][$i]);
             $fileTmpName = $files["tmp_name"][$i];
+            $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION)); // Get file extension
             $fileType = mime_content_type($fileTmpName);
-            $fileData = file_get_contents($fileTmpName);
 
-            $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date) 
-                                    VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            // Check if the file has an allowed type and extension
+            if (in_array($fileExtension, $allowedTypes) && preg_match('/^image\/(jpeg|jpg|png)$/', $fileType)) {
+                $fileData = file_get_contents($fileTmpName);
 
-            if ($stmt === false) {
-                die("Error in preparing statement: " . $conn->error);
-            }
+                $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date) 
+                                        VALUES (?, ?, ?, ?, ?, ?, NOW())");
 
-            // Concatenate first, middle, and last name to form client_name
-            $clientName = trim($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']);
-            $stmt->bind_param("isssss", $userId, $clientName, $category, $fileName, $fileData, $fileType);
+                if ($stmt === false) {
+                    die("Error in preparing statement: " . $conn->error);
+                }
 
-            if ($stmt->execute()) {
-                $uploadedFiles[] = $fileName;
-                $fileIds[] = $stmt->insert_id;  // Collect the inserted file ID
+                // Concatenate first, middle, and last name to form client_name
+                $clientName = trim($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']);
+                $stmt->bind_param("isssss", $userId, $clientName, $category, $fileName, $fileData, $fileType);
+
+                if ($stmt->execute()) {
+                    $uploadedFiles[] = $fileName;
+                    $fileIds[] = $stmt->insert_id;  // Collect the inserted file ID
+                } else {
+                    $_SESSION['error_message'][] = "Error: " . $stmt->error;
+                }
+                $stmt->close();
             } else {
-                $_SESSION['error_message'][] = "Error: " . $stmt->error;
+                $_SESSION['error_message'][] = "File type not allowed for file: " . $fileName;
             }
-            $stmt->close();
         }
+
 
         // Notify user and add notification if files were successfully uploaded
         if ($uploadOk == 1 && !empty($uploadedFiles)) {

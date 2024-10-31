@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->bind_param("sssssss", $first_name, $middle_name, $last_name, $birthday, $address, $birthplace, $gender);
         $stmt->execute();
         $stmt->store_result();  
-
+        
         if ($stmt->num_rows > 0) {
             // User with these details already exists
             $error = "A user with these details is already registered. Please check your information.";
@@ -60,8 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-
-// Close connection
 $conn->close();
 ?>
 

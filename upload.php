@@ -116,7 +116,7 @@ $conn->close();
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Upload Files</h1>
+            <h1>Send request for your choosen types of assistance</h1>
           </div>
         </div>
       </div>

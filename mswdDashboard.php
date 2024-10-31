@@ -71,12 +71,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
             </a>
           </li>
           <li class="nav-item">
-            <a href="clients_table.php" class="nav-link">
-              <i class="nav-icon far fa-bell"></i>
-              <p>Clients</p>
-            </a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="#" role="button" data-widget="pushmenu">
               <i class="nav-icon far fa-bell"></i>
               <p>
@@ -180,7 +174,8 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
 <script src="data_visualization.js"></script>
 <script src="notifications.js"></script>
 <script>
-    let currentChart;  // Store reference to the current chart
+  // Scripts for dynamic charts selection
+    let currentChart;
     function fetchData(year, startMonth, endMonth) {
         return $.ajax({
             url: 'data_visualization.php',

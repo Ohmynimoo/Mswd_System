@@ -1,140 +1,78 @@
 $(document).ready(function () {
-    const table = initializeDataTable();
-    fetchRecords();
+    var table = $("#example2").DataTable({
+        responsive: true,
+        lengthChange: false,
+        autoWidth: true
+    });
 
-    // Initialize the DataTable with specific settings
-    function initializeDataTable() {
-        return $("#example2").DataTable({
-            responsive: true,
-            lengthChange: false,
-            autoWidth: true
-        });
-    }
-
-    // Fetch records and populate the DataTable
     function fetchRecords() {
         $.ajax({
-            url: 'fetch_record.php', // Updated URL for fetching records
+            url: 'fetch_record.php',
             method: 'GET',
             success: function (data) {
-                updateTableWithRecords(data);
+                table.clear().draw();
+                data.forEach(function (record) {
+                    var dateValue = record.date === "0000-00-00" ? "N/A" : record.date;
+                    var row = [
+                        record.firstName,
+                        record.lastName,
+                        record.middleName,
+                        `<button class="btn btn-primary view-button" 
+                            data-record='${JSON.stringify(record)}' 
+                            data-toggle="modal" data-target="#recordModal">
+                            View
+                        </button>`
+                    ];
+                    table.row.add(row).draw();
+                });
             },
             error: function (xhr) {
-                console.error("Error fetching records:", xhr.responseText);
                 alert('Error fetching records. Please try again.');
             }
         });
-    }    
-
-    // Update the DataTable with fetched records
-    function updateTableWithRecords(data) {
-        table.clear().draw();
-        data.forEach(function (record) {
-            const row = createRecordRow(record);
-            table.row.add(row).draw();
-        });
     }
 
-    // Create a row for the DataTable based on a record
-    function createRecordRow(record) {
-        return [
-            record.firstName,
-            record.lastName,
-            record.middleName,
-            `<button class="btn btn-primary view-button" 
-                data-record='${JSON.stringify(record)}' 
-                data-toggle="modal" data-target="#recordModal">
-                View
-            </button>`
-        ];
+    fetchRecords();
+
+    function isValidMobileNumber(mobileNumber) {
+        const regex = /^\d{11}$/;
+        return regex.test(mobileNumber);
     }
 
-   // Handle form submission to add a new record
     $('#recordForm').submit(function (event) {
         event.preventDefault();
+        var mobileNumber = $('#mobileNumber').val();
+        if (!isValidMobileNumber(mobileNumber)) {
+            alert('Mobile number must be exactly 11 digits.');
+            return;
+        }
 
-        // Convert main form data into JSON format
-        const formData = {
-            firstName: $('#firstName').val(),
-            lastName: $('#lastName').val(),
-            middleName: $('#middleName').val(),
-            age: $('#age').val(),
-            birthPlace: $('#birthPlace').val(),
-            address: $('#address').val(),
-            education: $('#education').val(),
-            income: $('#income').val(),
-            occupation: $('#occupation').val(),
-            gender: $('#gender').val(),
-            mobileNumber: $('#mobileNumber').val(),
-            clientType: $('#clientType').val(),
-            date: $('#date').val(),
-            assistanceType: $('#assistanceType').val(),
-            fundType: $('#fundType').val(),
-            amount: $('#amount').val(),
-            beneficiary: $('#beneficiary').val(),
-            familyMembers: [] // Initialize an empty array for family members
-        };
-
-        // Collect data from family members section
-        $('#familyMembersContainer .card-body').each(function () {
-            const familyMember = {
-                firstName: $(this).find('input[name="familyFirstName[]"]').val(),
-                lastName: $(this).find('input[name="familyLastName[]"]').val(),
-                middleName: $(this).find('input[name="familyMiddleName[]"]').val(),
-                dateOfBirth: $(this).find('input[name="familyDateOfBirth[]"]').val(),
-                gender: $(this).find('select[name="familyGender[]"]').val(),
-                relationship: $(this).find('input[name="familyRelationship[]"]').val()
-            };
-            formData.familyMembers.push(familyMember);
-        });
-
-        // Log the data before sending it to the server
-        console.log('Data to be sent to the server:', JSON.stringify(formData));
-        addNewRecord(formData); // Send as JSON
-    });
-
-
-    // AJAX request to add a new record
-    function addNewRecord(formData) {
+        var formData = $(this).serialize();
         $.ajax({
             url: 'add_record.php',
             method: 'POST',
-            contentType: 'application/json', // Ensure data is sent as JSON
-            data: JSON.stringify(formData), // Convert data to JSON
-            success: function () {
-                console.log('Record added successfully');
-                $('#addRecordForm').toggle(); // Hide the form after adding
-                fetchRecords(); // Refresh records
+            data: formData,
+            success: function (response) {
+                $('#addRecordForm').toggle();
+                fetchRecords();
             },
             error: function (xhr) {
-                console.error('Error adding record:', xhr.responseText);
                 alert('Error adding record. Please try again.');
             }
         });
-    }
+    });
 
-    // Toggle the Add Record Form visibility
     $('#addRecordButton').click(function () {
         $('#addRecordForm').toggle();
     });
 
-    // Populate the modal with record details on button click
     $('#recordModal').on('show.bs.modal', function (event) {
-        const record = $(event.relatedTarget).data('record');
-        displayRecordDetails(record, $(this));
-    });
+        var button = $(event.relatedTarget);
+        var record = button.data('record');
+        var modal = $(this);
+        var modalBody = modal.find('.modal-body');
 
-    // Display detailed information of the selected record in the modal
-    function displayRecordDetails(record, modal) {
-        let details = createPersonalInfoCard(record);
-        details += createFamilyMembersCard(record.familyMembers);
-        modal.find('.modal-body').html(details);
-        modal.find('#editRecordButton').data('record', record);
-    }
-
-    // Create a card displaying personal information
-    function createPersonalInfoCard(record) {
-        return `
+        var details = `
             <div class="card">
                 <div class="card-header"><strong>Personal Information</strong></div>
                 <div class="card-body">
@@ -157,49 +95,46 @@ $(document).ready(function () {
                     <p>Beneficiary: ${record.beneficiary}</p>
                 </div>
             </div><hr>`;
-    }
 
-    // Create a card displaying family members
-    function createFamilyMembersCard(familyMembers) {
-        if (!familyMembers || familyMembers.length === 0) {
-            return `<div class="card mt-3"><div class="card-header">Family Members</div><div class="card-body"><p>No family members listed.</p></div></div>`;
+        if (record.familyMembers && record.familyMembers.length > 0) {
+            details += `<div class="card mt-3">
+                <div class="card-header"><strong>Family Members</strong></div>
+                <div class="card-body">`;
+            record.familyMembers.forEach(function (familyMember) {
+                details += `
+                    <p>First Name: ${familyMember.firstName}</p>
+                    <p>Last Name: ${familyMember.lastName}</p>
+                    <p>Middle Name: ${familyMember.middleName}</p>
+                    <p>Date of Birth: ${familyMember.dateOfBirth}</p>
+                    <p>Gender: ${familyMember.gender}</p>
+                    <p>Relationship: ${familyMember.relationship}</p><hr>`;
+            });
+            details += `</div></div>`;
+        } else {
+            details += `<div class="card mt-3">
+                <div class="card-header">Family Members</div>
+                <div class="card-body"><p>No family members listed.</p></div>
+            </div>`;
         }
 
-        let familyDetails = `<div class="card mt-3"><div class="card-header"><strong>Family Members</strong></div><div class="card-body">`;
-        familyMembers.forEach(member => {
-            familyDetails += `
-                <p>First Name: ${member.firstName}</p>
-                <p>Last Name: ${member.lastName}</p>
-                <p>Middle Name: ${member.middleName}</p>
-                <p>Date of Birth: ${member.dateOfBirth}</p>
-                <p>Gender: ${member.gender}</p>
-                <p>Relationship: ${member.relationship}</p><hr>`;
-        });
-        familyDetails += `</div></div>`;
-        return familyDetails;
-    }
+        modalBody.html(details);
+        modal.find('#editRecordButton').data('record', record);
+    });
 
-    // Event listener for edit button in the record modal
     $('#editRecordButton').click(function () {
-        const record = $(this).data('record');
+        var record = $(this).data('record');
         if (!record) {
             alert("Error: Record data is missing.");
             return;
         }
-        openEditModal(record);
-    });
-    
-    // Open the modal to edit the record with populated fields
-    function openEditModal(record) {
         $('#recordModal').modal('hide');
         $('#editRecordModal').modal('show');
-        const editForm = generateEditForm(record);
+        var editForm = generateEditForm(record);
         $('#editRecordModal .modal-body').html(editForm);
-    }
+    });
 
-    // Generate the HTML form for editing a record
     function generateEditForm(record) {
-        return `
+        let formHtml = `
             <form id="editForm" class="card-body">
                 <input type="hidden" id="editId" name="id" value="${record.id}">
                 ${createInputField('First Name', 'editFirstName', 'firstName', record.firstName)}
@@ -214,64 +149,43 @@ $(document).ready(function () {
                 ${createInputField('Mobile Number', 'editMobileNumber', 'mobileNumber', record.mobileNumber, 'number')}
                 ${createSelectField('Gender', 'editGender', 'gender', record.gender, ['Male', 'Female'])}
                 ${createSelectField('Client Type', 'editClientType', 'clientType', record.clientType, ['4ps', 'Senior Citizen', 'PWD', 'Solo Parent'])}
-                ${createSelectField('Assistance Type', 'editAssistanceType', 'assistanceType', record.assistanceType, ['Medical Assistance', 'Burial Assistance', 'Transportation Assistance', 'Educational Assistance', 'Emergency Shelter Assistance', 'Livelihood Assistance'])}
+                ${createSelectField('Assistance Type', 'editAssistanceType', 'assistanceType', record.assistanceType, [
+                    'Medical Assistance', 'Burial Assistance', 'Transportation Assistance',
+                    'Educational Assistance', 'Emergency Shelter Assistance', 'Livelihood Assistance'
+                ])}
                 ${createSelectField('Fund Type', 'editFundType', 'fundType', record.fundType, ['LGU Fund', 'Barangay Fund', 'SK Fund'])}
                 ${createInputField('Date', 'editDate', 'date', record.date, 'date')}
                 ${createInputField('Amount', 'editAmount', 'amount', record.amount, 'number')}
                 ${createInputField('Beneficiary', 'editBeneficiary', 'beneficiary', record.beneficiary)}
             </form>`;
+
+        // Handle family members section if there are any
+        if (record.familyMembers && record.familyMembers.length > 0) {
+            formHtml += `<div class="card mt-3">
+                <div class="card-header"><strong>Edit Family Members</strong></div>
+                <div id="familyMembersEditSection" class="card-body">`;
+
+            // Use familyMember variable in the loop to access the correct data
+            record.familyMembers.forEach(function (familyMember, index) {
+                formHtml += `
+                    <div class="family-member-form" data-index="${index}">
+                        <input type="hidden" name="familyMembers[${index}][id]" value="${familyMember.id || ''}"> <!-- Hidden family member ID -->
+                        ${createInputField('Family Member First Name', `editFamilyFirstName${index}`, `familyMembers[${index}][firstName]`, familyMember.firstName)}
+                        ${createInputField('Family Member Last Name', `editFamilyLastName${index}`, `familyMembers[${index}][lastName]`, familyMember.lastName)}
+                        ${createInputField('Family Member Middle Name', `editFamilyMiddleName${index}`, `familyMembers[${index}][middleName]`, familyMember.middleName)}
+                        ${createInputField('Date of Birth', `editFamilyDOB${index}`, `familyMembers[${index}][dateOfBirth]`, familyMember.dateOfBirth, 'date')}
+                        ${createSelectField('Gender', `editFamilyGender${index}`, `familyMembers[${index}][gender]`, familyMember.gender, ['Male', 'Female'])}
+                        ${createInputField('Relationship', `editFamilyRelationship${index}`, `familyMembers[${index}][relationship]`, familyMember.relationship)}
+                    </div>`;
+            });
+
+            formHtml += `</div></div>`;
+        }
+
+        return formHtml;
     }
-    // Event listener for saving the edited record
-    $('#editRecordModal').on('click', '#saveEditButton', function () {
-        // Collect the data from the edit form
-        const editedRecord = {
-            id: $('#editId').val(),
-            firstName: $('#editFirstName').val(),
-            lastName: $('#editLastName').val(),
-            middleName: $('#editMiddleName').val(),
-            age: $('#editAge').val(),
-            birthPlace: $('#editBirthPlace').val(),
-            address: $('#editAddress').val(),
-            education: $('#editEducation').val(),
-            income: $('#editIncome').val(),
-            occupation: $('#editOccupation').val(),
-            mobileNumber: $('#editMobileNumber').val(),
-            gender: $('#editGender').val(),
-            clientType: $('#editClientType').val(),
-            date: $('#editDate').val(),
-            assistanceType: $('#editAssistanceType').val(),
-            fundType: $('#editFundType').val(),
-            amount: $('#editAmount').val(),
-            beneficiary: $('#editBeneficiary').val()
-        };
-
-        console.log("Sending edited record:", editedRecord);
-
-        // AJAX request to update the record using the PUT method
-        $.ajax({
-            url: 'edit_record.php',
-            method: 'PUT', // Use PUT for updates
-            data: JSON.stringify(editedRecord), // Convert the data to JSON format
-            contentType: 'application/json', // Indicate that the data is in JSON format
-            success: function (response) {
-                if (response.status === 'success') {
-                    console.log('Record edited successfully');
-                    $('#editRecordModal').modal('hide');
-                    fetchRecords(); // Refresh the records to show the updated data
-                } else {
-                    console.error('Error editing record:', response.message);
-                    alert('Error editing record: ' + response.message);
-                }
-            },
-            error: function (xhr) {
-                console.error('Error editing record:', xhr.responseText);
-                alert('Error editing record. Please try again.');
-            }
-        });
-    });
 
 
-    // Helper function to create an input field
     function createInputField(label, id, name, value, type = 'text') {
         return `
             <div class="form-group">
@@ -280,12 +194,10 @@ $(document).ready(function () {
             </div>`;
     }
 
-    // Helper function to create a select field
     function createSelectField(label, id, name, selectedValue, options) {
         let optionsHtml = options.map(option => 
             `<option value="${option}" ${option === selectedValue ? 'selected' : ''}>${option}</option>`
         ).join('');
-
         return `
             <div class="form-group">
                 <label for="${id}">${label}</label>
@@ -294,4 +206,24 @@ $(document).ready(function () {
                 </select>
             </div>`;
     }
+
+    $('#editRecordModal').on('click', '#saveEditButton', function () {
+        var editedRecord = $('#editForm').serialize();
+        $.ajax({
+            url: 'edit_record.php',
+            method: 'POST',
+            data: editedRecord,
+            success: function (response) {
+                if (response.status === 'success') {
+                    $('#editRecordModal').modal('hide');
+                    fetchRecords();
+                } else {
+                    alert('Error editing record: ' + response.message);
+                }
+            },
+            error: function (xhr) {
+                alert('Error editing record. Please try again.');
+            }
+        });
+    });
 });

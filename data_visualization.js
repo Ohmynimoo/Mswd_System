@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDynamicChart(filteredData, currentChartType); // Use the current chart type
   }
 
-  // Update the dynamic chart (bar, line, pie, etc.)
   function updateDynamicChart(data, chartType) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const assistanceTypes = [...new Set(data.map(item => item.assistanceType))];
@@ -62,11 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Create a new chart with the selected type
     const ctx = document.getElementById('dynamicChart').getContext('2d');
     dynamicChart = new Chart(ctx, {
-        type: chartType,  // Dynamic chart type (bar, line, etc.)
+        type: chartType,  // Dynamic chart type (bar, line, pie, etc.)
         data: dynamicData,
         options: {
             responsive: true,
-            scales: {
+            // Apply smaller aspect ratio for pie charts only
+            aspectRatio: chartType === 'pie' ? 1.7 : 2,  // Adjust the aspect ratio for pie chart (smaller)
+            scales: chartType !== 'pie' ? {  // Only apply scales for non-pie charts
                 y: {
                     beginAtZero: true,
                     ticks: {
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
                 }
-            },
+            } : {},  // Skip scales for pie chart
             plugins: {
                 title: { display: true, text: 'Assistance by Month' },
                 legend: { position: 'top' }
@@ -87,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 }
-
 
   // Functions for updating the charts
   function updatePieCharts(data) {

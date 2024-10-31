@@ -42,7 +42,7 @@
 
     <section id="assistance">
         <div class="fixed-container">
-            <h2>Types of Assistance</h2>
+            <h2>Types of Assistance Requirements</h2>
             <div class="assistance-container">
                 <div class="assistance-box">
                     <h3>Medical Assistance</h3>
@@ -143,9 +143,21 @@
         </div>
     </section>
 
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2024 Municipal Social Welfare Development of Bulan Sorsogon. All Rights Reserved.</p>
+            <ul class="footer-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact Us</a></li>
+                <li><a href="privacy_policy.php">Privacy Policy</a></li>
+                <li><a href="terms_of_service.php">Terms of Service</a></li>
+            </ul>
+        </div>
+    </footer>
 
     <!-- Link to external JS file -->
     <script src="landing_page.js"></script>
 </body>
-
 </html>

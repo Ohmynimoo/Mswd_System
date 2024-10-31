@@ -141,7 +141,8 @@ $conn->close();
       <h2>Assistance Record Management</h2>
       <button id="addRecordButton" class="btn btn-success mb-3">Add Record</button>
       
-      <form id="recordForm" class="form-horizontal">
+      <form id="recordForm" class="form-horizontal" action="delete_client.php" method="POST">
+        <input type="hidden" name="client_id" value="<?php echo $client_id; ?>" />
         <h4>Personal Information</h4>
         <div class="form-row">
           <div class="form-group col-md-4">
@@ -332,26 +333,51 @@ $conn->close();
 
     // JavaScript function to calculate age from birth date
     function calculateAge() {
-      const birthdayInput = document.getElementById('birthday').value;
-      if (birthdayInput) {
-        const birthDate = new Date(birthdayInput);
-        const diff = Date.now() - birthDate.getTime();
-        const ageDate = new Date(diff);
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        document.getElementById('age').value = age;
-      } else {
-        document.getElementById('age').value = '';
+        const birthdayInput = document.getElementById('birthday').value;
+        if (birthdayInput) {
+          const birthDate = new Date(birthdayInput);
+          const diff = Date.now() - birthDate.getTime();
+          const ageDate = new Date(diff);
+          const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+          document.getElementById('age').value = age;
+        } else {
+          document.getElementById('age').value = '';
+        }
       }
-    }
+
+      // Automatically trigger the age calculation if the birthday is pre-filled
+      document.addEventListener('DOMContentLoaded', function() {
+        const birthdayInput = document.getElementById('birthday');
+        if (birthdayInput.value) {
+          calculateAge();
+        }
+      });
 
     // Handle form submission and trigger toast
     document.querySelector('form#recordForm').addEventListener('submit', function(event) {
         event.preventDefault();  // Prevent actual form submission
 
-        // Show the toast notification with fade-in animation
-        var toastElement = document.getElementById('submitToast');
-        var toast = new bootstrap.Toast(toastElement, {animation: true, autohide: true, delay: 5000});
-        toast.show();
+        // Get the client ID from the form
+        var clientId = document.querySelector('input[name="client_id"]').value;
+
+        // Send an AJAX request to delete the client's information
+        fetch('delete_client.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'client_id=' + clientId
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+
+            // Show the toast notification with fade-in animation
+            var toastElement = document.getElementById('submitToast');
+            var toast = new bootstrap.Toast(toastElement, {animation: true, autohide: true, delay: 5000});
+            toast.show();
+        })
+        .catch(error => console.error('Error:', error));
 
         // Optionally, you can clear the form or reset after submission logic here
     });

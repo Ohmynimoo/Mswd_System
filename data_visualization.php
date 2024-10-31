@@ -5,6 +5,7 @@ if (!$conn) {
     die("Connection failed: ". mysqli_connect_error());
 }
 
+// Retrieves and converts the year, startMonth, and endMonth parameters from the GET request.
 $year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 $startMonth = isset($_GET['startMonth']) ? intval($_GET['startMonth']) : 1;
 $endMonth = isset($_GET['endMonth']) ? intval($_GET['endMonth']) : 12;
@@ -30,3 +31,4 @@ while ($row = mysqli_fetch_assoc($result)) {
 mysqli_close($conn);
 echo json_encode($data);
 ?>
+    

@@ -90,16 +90,6 @@ if ($result->num_rows > 0) {
     die("Error: No user found.");
 }
 
-// Fetch the status of notifications
-$statusQuery = "SELECT status FROM notifications WHERE id = ?";
-$stmt = $conn->prepare($statusQuery);
-$stmt->bind_param("i", $notificationId);
-$stmt->execute();
-$statusResult = $stmt->get_result();
-$statusRow = $statusResult->fetch_assoc();
-
-$status = $statusRow ? $statusRow['status'] : 'Pending';
-
 $stmt->close();
 $conn->close();
 ?>
@@ -246,20 +236,16 @@ $conn->close();
                                             </p>
                                         <?php endif; ?>
                                     <?php endforeach; ?>
-
-                                    <!-- Bootstrap Alert for file re-upload -->
-                                    <div id="uploadAlert" class="alert d-none" role="alert"></div>
-
-                                    <form action="reupload.php" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" name="notification_id" value="<?php echo isset($notification['notification_id']) ? htmlspecialchars($notification['notification_id']) : ''; ?>">
-                                        
+                                    <!-- File re-upload form starts here -->
+                                    <h5 class="mt-4">Re-upload Files</h5>
+                                    <form id="reuploadForm" action="reupload.php" method="POST" enctype="multipart/form-data">
+                                        <input type="hidden" name="notification_id" value="<?php echo htmlspecialchars($notificationId); ?>" />
                                         <div class="form-group">
-                                            <label for="new_file">Re-Upload File:</label>
-                                            <input type="file" name="new_file" id="new_file" class="form-control" required>
+                                            <input type="file" class="form-control-file" id="reupload_files" name="reupload_files[]" multiple required>
                                         </div>
-
-                                        <button type="submit" class="btn btn-primary">Re-Upload File</button>
+                                        <button type="submit" class="btn btn-primary mt-2">Submit</button>
                                     </form>
+
                                 </div>
                             </div>
                         </div>

@@ -3,14 +3,14 @@
 include 'config.php';
 
 if (isset($_GET['id'])) {
-    $notificationId = $_GET['id'];  // Fetch the notification ID from the URL (or wherever it comes from)
+    $notificationId = $_GET['id'];  // Fetch the notification ID from the URL
 
     // Fetch notification and related user details
     $query = "
     SELECT 
-        notifications.*,
-        uploads.user_id,
-        uploads.category, -- Fetch the category from uploads table
+        notifications.*, 
+        uploads.user_id, 
+        uploads.category,
         users.first_name,
         users.middle_name,
         users.last_name,
@@ -23,7 +23,7 @@ if (isset($_GET['id'])) {
     INNER JOIN uploads ON FIND_IN_SET(uploads.id, notifications.file_ids)
     INNER JOIN users ON uploads.user_id = users.id
     WHERE notifications.id = ?";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $notificationId);
     $stmt->execute();
@@ -31,9 +31,9 @@ if (isset($_GET['id'])) {
     $notification = $result->fetch_assoc();
     $stmt->close();
 
-    // Fetch the files associated with the notification
+    // Fetch the original files associated with the notification
     $fileIds = explode(',', $notification['file_ids']);
-    $fileIdsString = implode("','", $fileIds);
+    $fileIdsString = implode("','", $fileIds); // Prepare file IDs for SQL IN clause
     $fileQuery = "SELECT id, filename, file_type, file_data FROM uploads WHERE id IN ('$fileIdsString')";
     $fileResult = $conn->query($fileQuery);
 
@@ -45,15 +45,16 @@ if (isset($_GET['id'])) {
                 'id' => $row['id'],
                 'filename' => $row['filename'],
                 'file_type' => $row['file_type'],
-                'file_data' => 'data:'. $row['file_type']. ';base64,'. $fileData
+                'file_data' => 'data:' . $row['file_type'] . ';base64,' . $fileData
             ];  
         }
     }
 
-   // Fetch re-uploaded files for the notification
-    $reuploadQuery = "SELECT filename, file_type, file_data FROM reuploaded_files WHERE notification_id = ?";
+    // Fetch the reuploaded files based on user_id and category
+    $reuploadQuery = "SELECT id, filename, file_type, file_data FROM uploads 
+                      WHERE user_id = ? AND category = ? AND id NOT IN ('$fileIdsString')";
     $stmt = $conn->prepare($reuploadQuery);
-    $stmt->bind_param("i", $notificationId);
+    $stmt->bind_param("is", $notification['user_id'], $notification['category']);
     $stmt->execute();
     $reuploadResult = $stmt->get_result();
 
@@ -62,13 +63,13 @@ if (isset($_GET['id'])) {
         while ($row = $reuploadResult->fetch_assoc()) {
             $fileData = base64_encode($row['file_data']);
             $reuploadedFiles[] = [
+                'id' => $row['id'],
                 'filename' => $row['filename'],
                 'file_type' => $row['file_type'],
-                'file_data' => 'data:'. $row['file_type']. ';base64,'. $fileData
+                'file_data' => 'data:' . $row['file_type'] . ';base64,' . $fileData
             ];
         }
     }
-
     $stmt->close();
     $conn->close();
 } else {
@@ -209,25 +210,25 @@ if (isset($_GET['id'])) {
                             </table>
                         </div>
                     
-                        // Display original files
-                        <h5 class="mt-4"><strong>Original Files:</strong></h5>
+                        <!-- Display original files -->
+                        <h5 class="mt-4"><strong>Uploaded Files:</strong></h5>
                         <div class="uploaded-files-container">
                             <div class="uploaded-files">
                                 <?php
-                                // Display original files
-                                foreach ($files as $file) {
-                                    echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
+                                if (!empty($files)) {
+                                    foreach ($files as $file) {
+                                        echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
+                                    }
+                                } else {
+                                    echo "<p>No files uploaded.</p>";
                                 }
                                 ?>
                             </div>
                         </div>
 
-                        // Display re-uploaded files
-                        <h5 class="mt-4"><strong>Re-Uploaded Files:</strong></h5>
                         <div class="uploaded-files-container">
                             <div class="uploaded-files">
                                 <?php
-                                // Display re-uploaded files
                                 if (!empty($reuploadedFiles)) {
                                     foreach ($reuploadedFiles as $file) {
                                         echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
@@ -238,8 +239,6 @@ if (isset($_GET['id'])) {
                                 ?>
                             </div>
                         </div>
-
-
 
                         <div class="form-group mt-3">
                             <label for="comment">Comment:</label>

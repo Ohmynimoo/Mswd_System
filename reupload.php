@@ -1,103 +1,137 @@
+//reupload.php
 <?php
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+session_start();
+include 'config.php'; // Include the database connection config
+
+// Ensure the user is logged in
+if (!isset($_SESSION['userid'])) {
+    die('Error: User is not logged in.');
 }
 
-// Include the database connection
-include 'config.php';
+$userId = $_SESSION['userid'];
 
-// Function to display an error message and log it
-function displayError($message) {
-    error_log($message);  // Log the error for debugging
-    echo "<script>alert('Error: " . htmlspecialchars($message) . "');</script>";
-    exit;
+// Get the notification ID from the form
+$notificationId = isset($_POST['notification_id']) ? intval($_POST['notification_id']) : null;
+
+// Ensure the notification ID is valid
+if (!$notificationId) {
+    die('Error: Invalid notification ID.');
 }
 
-// Debugging: Check if notification_id is received via POST
-if (isset($_POST['notification_id'])) {
-    echo "Received Notification ID: " . htmlspecialchars($_POST['notification_id']);
+// Ensure files were uploaded
+if (!isset($_FILES['reupload_files'])) {
+    die('Error: No files uploaded.');
+}
+
+// Fetch the user's details (client_name) and category from `client_notifications`
+$query = "SELECT cn.message, u.client_name, u.category 
+          FROM client_notifications cn
+          JOIN uploads u ON cn.user_id = u.user_id
+          WHERE cn.id = ?";
+$stmt = $conn->prepare($query);
+if ($stmt === false) {
+    die("Error in preparing statement: " . $conn->error);
+}
+$stmt->bind_param("i", $notificationId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $notificationData = $result->fetch_assoc();
+    $clientName = $notificationData['client_name'];
+    $category = $notificationData['category'];
 } else {
-    echo "Notification ID not received.";
-    displayError("Missing notification ID.");
+    die('Error: No notification data found.');
 }
 
-// Check if the notification ID and new file are defined
-if (isset($_POST['notification_id']) && !empty(trim($_POST['notification_id'])) && isset($_FILES['new_file'])) {
-    $notificationId = trim($_POST['notification_id']);
-    $newFile = $_FILES['new_file'];
+// Process reuploaded files
+$files = $_FILES['reupload_files'];
+$allowedTypes = ['jpg', 'jpeg', 'png']; // Allowed file types
+$uploadedFiles = [];
+$fileIds = [];
+$uploadOk = 0; // Initialize uploadOk to 0 initially
 
-    // Validate that the notification ID exists in the notifications table
-    $checkQuery = "SELECT id FROM notifications WHERE id = ?";
-    $stmt = $conn->prepare($checkQuery);
-    if (!$stmt) {
-        displayError("Database error: " . $conn->error);
-    }
+for ($i = 0; $i < count($files['name']); $i++) {
+    $fileName = basename($files['name'][$i]);
+    $fileTmpName = $files['tmp_name'][$i];
+    $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+    $fileType = mime_content_type($fileTmpName);
 
-    $stmt->bind_param("i", $notificationId);
-    $stmt->execute();
-    $stmt->store_result();
+    // Check if the file has an allowed type and extension
+    if (in_array($fileExtension, $allowedTypes) && preg_match('/^image\/(jpeg|jpg|png)$/', $fileType)) {
+        $fileData = file_get_contents($fileTmpName);
 
-    if ($stmt->num_rows === 0) {
-        // If notification ID does not exist, log and display the error
-        displayError("Notification ID does not exist: " . $notificationId);
-    }
+        // Insert the new file into the uploads table
+        $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date) 
+                                VALUES (?, ?, ?, ?, ?, ?, NOW())");
 
-    $stmt->close();
-
-    // Check if the file upload was successful
-    if ($newFile['error'] === UPLOAD_ERR_OK) {
-        // Get the file type and name
-        $fileType = mime_content_type($newFile['tmp_name']);
-        $fileName = basename($newFile['name']);
-        $fileData = file_get_contents($newFile['tmp_name']); // Read the file data
-
-        // Insert the new file into the reuploaded_files table
-        $query = "INSERT INTO reuploaded_files (notification_id, filename, file_type, file_data) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        if (!$stmt) {
-            displayError("Database error: " . $conn->error);
+        if ($stmt === false) {
+            die("Error in preparing statement: " . $conn->error);
         }
 
-        $stmt->bind_param("isss", $notificationId, $fileName, $fileType, $fileData);
-        
-        // Execute the query
+        $stmt->bind_param("isssss", $userId, $clientName, $category, $fileName, $fileData, $fileType);
+
         if ($stmt->execute()) {
-            // If successful, display a success alert using JavaScript
-            echo "<script>alert('File successfully reuploaded.');</script>";
+            $uploadedFiles[] = $fileName;
+            $fileIds[] = $stmt->insert_id; // Collect the inserted file ID
+            $uploadOk = 1; // Set to 1 to indicate at least one file was successfully uploaded
         } else {
-            displayError("SQL execution failed: " . $stmt->error);
+            $_SESSION['error_message'][] = "Error: " . $stmt->error;
         }
 
         $stmt->close();
     } else {
-        // Handle file upload error
-        $errorMessages = [
-            UPLOAD_ERR_INI_SIZE => "The uploaded file exceeds the upload_max_filesize directive in php.ini.",
-            UPLOAD_ERR_FORM_SIZE => "The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form.",
-            UPLOAD_ERR_PARTIAL => "The file was only partially uploaded.",
-            UPLOAD_ERR_NO_FILE => "No file was uploaded.",
-            UPLOAD_ERR_NO_TMP_DIR => "Missing a temporary folder.",
-            UPLOAD_ERR_CANT_WRITE => "Failed to write file to disk.",
-            UPLOAD_ERR_EXTENSION => "A PHP extension stopped the file upload."
-        ];
-
-        $errorCode = $newFile['error'];
-        $errorMessage = isset($errorMessages[$errorCode]) ? $errorMessages[$errorCode] : "Unknown upload error.";
-        displayError("File upload error: " . $errorMessage);
+        $_SESSION['error_message'][] = "File type not allowed for file: " . htmlspecialchars($fileName);
     }
-
-    // Close the database connection
-    $conn->close();
-} else {
-    // Handle cases where the notification ID or file was not provided
-    if (!isset($_POST['notification_id']) || empty(trim($_POST['notification_id']))) {
-        displayError("Missing notification ID.");
-    } elseif (!isset($_FILES['new_file'])) {
-        displayError("No file uploaded.");
-    } else {
-        displayError("Unknown error occurred.");
-    }
-    exit;
 }
+
+// Update the notification if files were successfully uploaded
+if (!empty($fileIds)) {
+    // Fetch the current file_ids from the notification
+    $stmt = $conn->prepare("SELECT file_ids FROM notifications WHERE id = ?");
+    $stmt->bind_param("i", $notificationId);
+    $stmt->execute();
+    $stmt->bind_result($currentFileIds);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Combine old file_ids with the new file_ids from reupload
+    $allFileIds = array_merge(explode(',', $currentFileIds), $fileIds);
+    $updatedFileIds = implode(',', $allFileIds);
+
+    // Update the notification record with the new file_ids
+    $stmt = $conn->prepare("UPDATE notifications SET file_ids = ? WHERE id = ?");
+    $stmt->bind_param("si", $updatedFileIds, $notificationId);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// Notify user and add notification if files were successfully uploaded
+if ($uploadOk == 1 && !empty($uploadedFiles)) {
+    // Assuming $user array is defined earlier in the code
+    $message = htmlspecialchars($clientName) . " has uploaded new files in category: " . htmlspecialchars($category);
+    $fileNames = implode(", ", $uploadedFiles);
+    $fileIdsStr = implode(",", $fileIds);  // Convert file IDs array to string
+
+    $stmt = $conn->prepare("INSERT INTO notifications (client_name, mobile, birthday, address, category, message, file_names, file_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt) {
+        $stmt->bind_param("ssssssss", $clientName, $user['mobile'], $user['birthday'], $user['address'], $category, $message, $fileNames, $fileIdsStr);
+
+        if ($stmt->execute()) {
+            $_SESSION['success_message'] = "Your files have been successfully submitted to the MSWD of Bulan.";
+        } else {
+            $_SESSION['error_message'][] = "Error: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        die("Error preparing notification statement: " . $conn->error);
+    }
+}
+
+$conn->close();
+
+// Redirect back to the comments or notifications page
+header("Location: view_comments.php?notification_id=" . $notificationId);
+exit();
+
 ?>
