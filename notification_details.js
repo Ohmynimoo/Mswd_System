@@ -32,29 +32,18 @@ $('#submit-comment').on('click', function() {
             comment: comment
         },
         success: function(response) {
-            // Change the class to indicate success
             $('#commentToast').removeClass('bg-danger').addClass('bg-success');
-            
-            // Show the success message in the toast
             $('#commentToastBody').text(response);
-
-            // Initialize and show the toast manually with a delay of 5 seconds
             var toastElement = document.getElementById('commentToast');
-            var toast = new bootstrap.Toast(toastElement, { delay: 5000 }); // Show for 5 seconds
+            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
             toast.show();
-
-            $('#comment').val('');  // Clear the comment box
+            $('#comment').val('');
         },
         error: function() {
-            // Change the class to indicate an error
             $('#commentToast').removeClass('bg-success').addClass('bg-danger');
-            
-            // Show the error message in the toast
             $('#commentToastBody').text('Error submitting comment.');
-
-            // Initialize and show the toast manually with a delay of 5 seconds
             var toastElement = document.getElementById('commentToast');
-            var toast = new bootstrap.Toast(toastElement, { delay: 5000 }); // Show for 5 seconds
+            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
             toast.show();
         }
     });
@@ -62,90 +51,106 @@ $('#submit-comment').on('click', function() {
 
 // Send SMS for Interview and update request status to Processing
 $('#send-sms-interview').on('click', function() {
-    var notificationId = $(this).data('notification-id');  // Get the notification ID
-    var mobile = $('#mobile-interview').val();  // Get the mobile number from input
-    var message = $('#message-interview').val();  // Get the message from input
+    if (confirm('Are you sure you want to send the interview SMS?')) {
+        var notificationId = $(this).data('notification-id');
+        var mobile = $('#mobile-interview').val();
+        var message = $('#message-interview').val();
 
-    // First, update the status to "Processing"
-    $.ajax({
-        url: 'update_request_status.php',  // Updated script to handle dynamic status update
-        type: 'POST',
-        data: {
-            notification_id: notificationId,
-            status: 'Processing'  // We are setting the status to "Processing"
-        },
-        success: function(response) {
-            if (response.success) {
-                // Status updated successfully, now attempt to send the SMS
-                $.ajax({
-                    url: 'send_sms.php',  // Backend script to handle SMS sending
-                    type: 'POST',
-                    data: {
-                        notification_id: notificationId,
-                        mobile: mobile,
-                        message: message
-                    },
-                    success: function(smsResponse) {
-                        alert(smsResponse);  // Display success or error message from send_sms.php
-                    },
-                    error: function() {
-                        alert('Error sending SMS.');
-                    }
-                });
-            } else {
-                alert('Error updating request status: ' + response.message);
+        $.ajax({
+            url: 'update_request_status.php',
+            type: 'POST',
+            data: {
+                notification_id: notificationId,
+                status: 'Processing'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $.ajax({
+                        url: 'send_sms.php',
+                        type: 'POST',
+                        data: {
+                            notification_id: notificationId,
+                            mobile: mobile,
+                            message: message
+                        },
+                        success: function(smsResponse) {
+                            $('#commentToast').removeClass('bg-danger').addClass('bg-success');
+                            $('#commentToastBody').text('Sending SMS successfully');
+                            var toastElement = document.getElementById('commentToast');
+                            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                            toast.show();
+                        },
+                        error: function() {
+                            $('#commentToast').removeClass('bg-success').addClass('bg-danger');
+                            $('#commentToastBody').text('Error sending SMS.');
+                            var toastElement = document.getElementById('commentToast');
+                            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                            toast.show();
+                        }
+                    });
+                } else {
+                    alert('Error updating request status: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error updating request status.');
             }
-        },
-        error: function() {
-            alert('Error updating request status.');
-        }
-    });
+        });
+    }
 });
 
-//Send sms for payout and update request status to approved
+// Send SMS for Payout and update request status to Approved
 $('#send-sms-payout').on('click', function() {
-    var notificationId = $(this).data('notification-id');
-    var mobile = $('#mobile-payout').val();
-    var message = $('#message-payout').val();
+    if (confirm('Are you sure you want to send the payout SMS?')) {
+        var notificationId = $(this).data('notification-id');
+        var mobile = $('#mobile-payout').val();
+        var message = $('#message-payout').val();
 
-    // Step 1: Update the request status to "Approved"
-    $.ajax({
-        url: 'update_request_status.php',
-        type: 'POST',
-        data: {
-            notification_id: notificationId,
-            status: 'Approved'  // Set the status to "Approved"
-        },
-        success: function(response) {
-            console.log('Status update response:', response);  // Log the response to ensure status was updated
-            if (response.success) {
-                // Status updated successfully, now send the SMS
-                $.ajax({
-                    url: 'send_sms.php',
-                    type: 'POST',
-                    data: {
-                        notification_id: notificationId,
-                        mobile: mobile,
-                        message: message
-                    },
-                    success: function(smsResponse) {
-                        alert(smsResponse);  // Show the SMS response
-                    },
-                    error: function() {
-                        alert('Error sending SMS for Payout.');
-                    }
-                });
-            } else {
-                alert('Error updating request status: ' + response.message);
+        $.ajax({
+            url: 'update_request_status.php',
+            type: 'POST',
+            data: {
+                notification_id: notificationId,
+                status: 'Approved'
+            },
+            success: function(response) {
+                console.log('Status update response:', response);
+                if (response.success) {
+                    $.ajax({
+                        url: 'send_sms.php',
+                        type: 'POST',
+                        data: {
+                            notification_id: notificationId,
+                            mobile: mobile,
+                            message: message
+                        },
+                        success: function(smsResponse) {
+                            $('#commentToast').removeClass('bg-danger').addClass('bg-success');
+                            $('#commentToastBody').text('Sending SMS successfully');
+                            var toastElement = document.getElementById('commentToast');
+                            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                            toast.show();
+                        },
+                        error: function() {
+                            $('#commentToast').removeClass('bg-success').addClass('bg-danger');
+                            $('#commentToastBody').text('Error sending SMS for Payout.');
+                            var toastElement = document.getElementById('commentToast');
+                            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                            toast.show();
+                        }
+                    });
+                } else {
+                    alert('Error updating request status: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error updating request status.');
             }
-        },
-        error: function() {
-            alert('Error updating request status.');
-        }
-    });
+        });
+    }
 });
 
-//Deny Request button
+// Deny Request button
 document.getElementById('deny-request').addEventListener('click', function() {
     var notificationId = this.getAttribute('data-notification-id');
     
@@ -153,24 +158,23 @@ document.getElementById('deny-request').addEventListener('click', function() {
         console.log('Deny button clicked, sending request...');
 
         $.ajax({
-            url: 'update_request_status.php',  // PHP file that handles the request
+            url: 'update_request_status.php',
             type: 'POST',
             data: { 
-                notification_id: notificationId,  // Pass the notification ID
-                status: 'Denied'  // Pass the status as 'Denied'
+                notification_id: notificationId,
+                status: 'Denied'
             },
             success: function(response) {
                 console.log('Parsed response:', response);
 
                 if (response.success) {
-                    // Show a success message in the toast
-                    $('#commentToastBody').text(response.message);
-                    var toastElement = new bootstrap.Toast(document.getElementById('commentToast'));
-                    toastElement.show();
+                    $('#commentToastBody').text('Deny Request Successfully');
+                    var toastElement = document.getElementById('commentToast');
+                    var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                    toast.show();
 
-                    // Optionally reload the page after a short delay to see the updated status
                     setTimeout(function() {
-                        window.location.reload();  // Reload to reflect the status change
+                        window.location.reload();
                     }, 2000);
                 } else {
                     alert('Error: ' + response.message);

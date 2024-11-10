@@ -21,7 +21,12 @@ $(document).ready(function () {
                             data-record='${JSON.stringify(record)}' 
                             data-toggle="modal" data-target="#recordModal">
                             View
-                        </button>`
+                        </button>`,
+                        `<button class="btn btn-warning history-button" 
+                            data-id="${record.id}" 
+                            data-toggle="modal" data-target="#historyModal">
+                            View
+                        </button>` 
                     ];
                     table.row.add(row).draw();
                 });
@@ -31,8 +36,88 @@ $(document).ready(function () {
             }
         });
     }
-
     fetchRecords();
+
+     // Fetch assistance history when history button is clicked
+     $('#tableBody').on('click', '.history-button', function () {
+        const individualId = $(this).data('id');
+        $('#individualId').val(individualId);
+        fetchAssistanceHistory(individualId);
+    });
+
+    function fetchAssistanceHistory(individualId) {
+        $.ajax({
+            url: 'get_assistance_history.php',
+            method: 'GET',
+            data: { individual_id: individualId },
+            success: function (data) {
+                console.log("Assistance history response:", data);
+    
+                if (Array.isArray(data) && data.length > 0) {
+                    const historyHtml = data.map((record, index) => `
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <strong>Assistance Request #${index + 2}</strong>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Client Type:</strong> ${record.clientType}</p>
+                                <p><strong>Assistance Type:</strong> ${record.assistanceType}</p>
+                                <p><strong>Fund Type:</strong> ${record.fundType}</p>
+                                <p><strong>Amount:</strong> ${record.amount}</p>
+                                <p><strong>Date:</strong> ${record.date}</p>
+                                <p><strong>Beneficiary:</strong> ${record.beneficiary}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                    $('#historyContent').html(historyHtml);
+                } else {
+                    $('#historyContent').html('<p>No assistance records found.</p>');
+                }
+            },
+            error: function (xhr) {
+                console.error("Error fetching assistance history:", xhr.responseText);
+                $('#historyContent').html('<p>Error loading assistance history.</p>');
+            }
+        });
+    }
+    
+
+    // Toggle the Add Assistance Form when the button is clicked
+    $('#addAssistanceButton').click(function () {
+        $('#addAssistanceForm').toggle();  // Toggle the visibility of the form
+    });
+
+    // Submit new assistance form and log data for debugging
+    $('#newAssistanceForm').submit(function (event) {
+        event.preventDefault();
+
+        // Log the form data to confirm all fields are populated
+        console.log("Submitting form data:", $(this).serializeArray());
+
+        const formData = $(this).serialize();
+
+        $.ajax({
+            url: 'add_assistance.php',
+            method: 'POST',
+            data: formData,
+            success: function (response) {
+                console.log("Add assistance response:", response); 
+                if (response.status === 'success') {
+                    $('#newAssistanceForm')[0].reset();
+                    $('#addAssistanceForm').hide();  // Hide the form after successful submission
+                    const individualId = $('#individualId').val();
+                    fetchAssistanceHistory(individualId);  // Refresh history to show the new record
+                    alert('Assistance record added successfully.');
+                } else {
+                    alert(response.message || 'Error adding assistance record.');
+                }
+            },
+            error: function (xhr) {
+                console.error("Error adding assistance:", xhr.responseText);
+                alert('Error adding assistance record. Please try again.');
+            }
+        });
+    });
 
     function isValidMobileNumber(mobileNumber) {
         const regex = /^\d{11}$/;
@@ -41,27 +126,42 @@ $(document).ready(function () {
 
     $('#recordForm').submit(function (event) {
         event.preventDefault();
+        
         var mobileNumber = $('#mobileNumber').val();
         if (!isValidMobileNumber(mobileNumber)) {
             alert('Mobile number must be exactly 11 digits.');
             return;
         }
-
+    
         var formData = $(this).serialize();
         $.ajax({
             url: 'add_record.php',
             method: 'POST',
             data: formData,
             success: function (response) {
-                $('#addRecordForm').toggle();
-                fetchRecords();
+                if (response.status === 'success') {
+                    $('#addRecordForm').toggle();
+                    fetchRecords();
+                    alert('Record added successfully.');
+                } else {
+                    alert(response.message || 'An error occurred while adding the record.');
+                }
             },
             error: function (xhr) {
-                alert('Error adding record. Please try again.');
+                let response = xhr.responseJSON;
+                if (response && response.status === 'error') {
+                    if (xhr.status === 409) { // Conflict due to duplicate entry
+                        alert(response.message || 'Duplicate entry: This record already exists.');
+                    } else {
+                        alert(response.message || 'Error adding record. Please try again.');
+                    }
+                } else {
+                    alert('Unexpected error occurred. Please try again.');
+                }
             }
         });
     });
-
+    
     $('#addRecordButton').click(function () {
         $('#addRecordForm').toggle();
     });
@@ -71,55 +171,65 @@ $(document).ready(function () {
         var record = button.data('record');
         var modal = $(this);
         var modalBody = modal.find('.modal-body');
-
+    
+        // Section for personal information with bold labels
         var details = `
             <div class="card">
                 <div class="card-header"><strong>Personal Information</strong></div>
                 <div class="card-body">
-                    <p>First Name: ${record.firstName}</p>
-                    <p>Last Name: ${record.lastName}</p>
-                    <p>Middle Name: ${record.middleName}</p>
-                    <p>Age: ${record.age}</p>
-                    <p>Birth Place: ${record.birthPlace}</p>
-                    <p>Address: ${record.address}</p>
-                    <p>Education: ${record.education}</p>
-                    <p>Income Per Day: ${record.income}</p>
-                    <p>Occupation: ${record.occupation}</p>
-                    <p>Mobile Number: ${record.mobileNumber}</p>
-                    <p>Gender: ${record.gender}</p>
-                    <p>Client Type: ${record.clientType}</p>
-                    <p>Date: ${record.date === "0000-00-00" ? "N/A" : record.date}</p>
-                    <p>Assistance Type: ${record.assistanceType}</p>
-                    <p>Fund Type: ${record.fundType}</p>
-                    <p>Amount: ${record.amount}</p>
-                    <p>Beneficiary: ${record.beneficiary}</p>
+                    <p><strong>First Name:</strong> ${record.firstName}</p>
+                    <p><strong>Last Name:</strong> ${record.lastName}</p>
+                    <p><strong>Middle Name:</strong> ${record.middleName}</p>
+                    <p><strong>Age:</strong> ${record.age}</p>
+                    <p><strong>Birth Place:</strong> ${record.birthPlace}</p>
+                    <p><strong>Address:</strong> ${record.address}</p>
+                    <p><strong>Education:</strong> ${record.education}</p>
+                    <p><strong>Income Per Day:</strong> ${record.income}</p>
+                    <p><strong>Occupation:</strong> ${record.occupation}</p>
+                    <p><strong>Mobile Number:</strong> ${record.mobileNumber}</p>
+                    <p><strong>Gender:</strong> ${record.gender}</p>
+                    <hr>
+                    <h4>Assistance Request #1</h4>
+                    <p><strong>Client Type:</strong> ${record.clientType}</p>
+                    <p><strong>Date:</strong> ${record.date === "0000-00-00" ? "N/A" : record.date}</p>
+                    <p><strong>Assistance Type:</strong> ${record.assistanceType}</p>
+                    <p><strong>Fund Type:</strong> ${record.fundType}</p>
+                    <p><strong>Amount:</strong> ${record.amount}</p>
+                    <p><strong>Beneficiary:</strong> ${record.beneficiary}</p>
                 </div>
-            </div><hr>`;
-
+            </div>
+            <hr>`;
+        // Family members section
         if (record.familyMembers && record.familyMembers.length > 0) {
-            details += `<div class="card mt-3">
-                <div class="card-header"><strong>Family Members</strong></div>
-                <div class="card-body">`;
+            details += `
+                <div class="card mt-3">
+                    <div class="card-header"><strong>Family Members</strong></div>
+                    <div class="card-body">`;
+            
             record.familyMembers.forEach(function (familyMember) {
                 details += `
-                    <p>First Name: ${familyMember.firstName}</p>
-                    <p>Last Name: ${familyMember.lastName}</p>
-                    <p>Middle Name: ${familyMember.middleName}</p>
-                    <p>Date of Birth: ${familyMember.dateOfBirth}</p>
-                    <p>Gender: ${familyMember.gender}</p>
-                    <p>Relationship: ${familyMember.relationship}</p><hr>`;
+                    <p><strong>First Name:</strong> ${familyMember.firstName}</p>
+                    <p><strong>Last Name:</strong> ${familyMember.lastName}</p>
+                    <p><strong>Middle Name:</strong> ${familyMember.middleName}</p>
+                    <p><strong>Date of Birth:</strong> ${familyMember.dateOfBirth}</p>
+                    <p><strong>Gender:</strong> ${familyMember.gender}</p>
+                    <p><strong>Relationship:</strong> ${familyMember.relationship}</p>
+                    <hr>`;
             });
+    
             details += `</div></div>`;
         } else {
-            details += `<div class="card mt-3">
-                <div class="card-header">Family Members</div>
-                <div class="card-body"><p>No family members listed.</p></div>
-            </div>`;
+            details += `
+                <div class="card mt-3">
+                    <div class="card-header">Family Members</div>
+                    <div class="card-body"><p>No family members listed.</p></div>
+                </div>`;
         }
-
+    
         modalBody.html(details);
         modal.find('#editRecordButton').data('record', record);
     });
+    
 
     $('#editRecordButton').click(function () {
         var record = $(this).data('record');

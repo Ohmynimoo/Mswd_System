@@ -27,11 +27,8 @@ if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $data[] = $row;
     }
-} else {
-    // In case of no data or query failure
-    echo json_encode(['error' => 'No clients found or query failed']);
-    exit;
-}
+} 
+
 
 // Return data as JSON
 echo json_encode($data);

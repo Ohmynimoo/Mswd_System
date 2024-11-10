@@ -1,33 +1,37 @@
-  $(document).ready(function() {
-    function loadNotifications() {
-      $.ajax({
-        type: 'GET',
-        url: 'fetch_notifications.php',
-        dataType: 'json',
-        success: function(data) {
-          var notificationMenu = $('#notification-menu');
-          notificationMenu.empty();
+$(document).ready(function() {
+  function loadNotifications() {
+    $.ajax({
+      type: 'GET',
+      url: 'fetch_notifications.php',
+      dataType: 'json',
+      success: function(data) {
+        var notificationMenu = $('#notification-menu');
+        notificationMenu.empty();
 
-          if (Array.isArray(data) && data.length > 0) {
-            $('#notification-count').text(data.length);
+        // Insert search bar at the top
+        notificationMenu.append('<li class="nav-item"><input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." /></li>');
 
-            var notificationMenuHtml = '';
-            var now = new Date();  // Current date and time
+        if (Array.isArray(data) && data.length > 0) {
+          $('#notification-count').text(data.length);
 
-            $.each(data, function(index, notification) {
-              var notificationDate = new Date(notification.notification_date); // Parse notification date
-              var isNew = (now - notificationDate) <= 1 * 60 * 60 * 1000;  // 1 hour in milliseconds
-              var notificationHtml = '<li class="nav-item">';
-              notificationHtml += '<a class="nav-link notification-link ' + (isNew ? 'new' : '') + '" data-id="' + notification.id + '">';
-              notificationHtml += '<div class="notification-message" title="' + notification.message + '">' + notification.message + '</div>';
-              notificationHtml += '</a></li>';
-              notificationMenuHtml += notificationHtml;
-            });
+          // Store notifications for filtering
+          var notificationMenuHtml = '';
+          var now = new Date();
 
-          notificationMenu.html(notificationMenuHtml);
+          $.each(data, function(index, notification) {
+            var notificationDate = new Date(notification.notification_date);
+            var isNew = (now - notificationDate) <= 1 * 60 * 60 * 1000;
+            var notificationHtml = '<li class="nav-item">';
+            notificationHtml += '<a class="nav-link notification-link ' + (isNew ? 'new' : '') + '" data-id="' + notification.id + '">';
+            notificationHtml += '<div class="notification-message" title="' + notification.message + '">' + notification.message + '</div>';
+            notificationHtml += '</a></li>';
+            notificationMenuHtml += notificationHtml;
+          });
+
+          notificationMenu.append(notificationMenuHtml);
         } else {
           $('#notification-count').text(0);
-          notificationMenu.html('<li class="nav-item"><a class="nav-link">No notifications found.</a></li>');
+          notificationMenu.append('<li class="nav-item"><a class="nav-link">No notifications found.</a></li>');
         }
       },
       error: function(xhr, status, error) {
@@ -37,6 +41,15 @@
   }
 
   loadNotifications();
+
+  // Filter notifications based on search input
+  $('#notification-menu').on('keyup', '#notification-search', function() {
+    var searchTerm = $(this).val().toLowerCase();
+    $('#notification-menu .notification-link').each(function() {
+      var message = $(this).text().toLowerCase();
+      $(this).toggle(message.includes(searchTerm));
+    });
+  });
 
   $('#notification-menu').on('click', '.notification-link', function(event) {
     event.preventDefault();

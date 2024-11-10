@@ -116,38 +116,56 @@ if (isset($_GET['id'])) {
             </div>
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item">
+                    <a href="mswdDashboard.php" class="nav-link active">
+                    <i class="nav-icon fas fa-home"></i>
+                    <p>Dashboard</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#" role="button" data-widget="pushmenu" id="notification-toggle">
+                    <i class="nav-icon far fa-bell"></i>
+                    <p>
+                        Client's Request
+                        <span class="right badge badge-warning" id="notification-count">0</span>
+                    </p>
+                    </a>
+
+                    <!-- Scrollable dropdown for notifications with search bar -->
+                    <ul class="nav nav-treeview direct-chat-messages overflow-auto" id="notification-menu" style="display: none;">
+                    <!-- Search bar for notifications -->
                     <li class="nav-item">
-                        <a href="mswdDashboard.php" class="nav-link active">
-                            <i class="nav-icon fas fa-home"></i>
-                            <p>Dashboard</p>
-                        </a>
+                        <input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." />
                     </li>
+
+                    <!-- Notifications will be dynamically added here -->
                     <li class="nav-item">
-                        <a href="individuals.php" class="nav-link">
-                            <i class="nav-icon fas fa-user"></i>
-                            <p>Individuals</p>
-                        </a>
+                        <a class="nav-link">No notifications found.</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" role="button" data-widget="pushmenu">
-                        <i class="nav-icon far fa-bell"></i>
-                        <p>
-                            Notifications
-                            <span class="right badge badge-warning" id="notification-count">0</span>
-                        </p>
-                        </a>
-                        <ul class="nav nav-treeview" id="notification-menu">
-                        <li class="nav-item">
-                            <a class="nav-link">No Notifications</a>
-                        </li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="logout.php" class="nav-link">
-                            <i class="nav-icon fas fa-sign-out-alt"></i>
-                            <p>Logout</p>
-                        </a>
-                    </li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a href="clients_table.php" class="nav-link">
+                    <i class="nav-icon fas fa-user"></i>
+                    <p>Add to Record</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="individuals.php" class="nav-link">
+                    <i class="nav-icon fas fa-user"></i>
+                    <p>Records</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="logout.php" class="nav-link">
+                    <i class="nav-icon fas fa-sign-out-alt"></i>
+                    <p>Logout</p>
+                    </a>
+                </li>
                 </ul>
             </nav>
         </div>

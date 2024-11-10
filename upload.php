@@ -1,26 +1,71 @@
 <?php
-// Start the session and include the config
 session_start();
 include 'config.php';
 
-// Fetch user information
-$userId = $_SESSION['userid'] ?? null; // Ensure that session has 'userid'
-$user = null;
-
-if ($userId) {
-    // Fetch user information from the database
-    $sql = "SELECT first_name, middle_name, last_name, mobile, birthday, address, birthplace, gender FROM users WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc(); // Assign the fetched user data to the $user array
-    }
-    $stmt->close();
+// Check if the user is logged in by verifying the session variable
+if (!isset($_SESSION['userid'])) {
+    header("Location: login.php");  // Redirect if not logged in
+    exit();
 }
-// Ensure we close the DB connection
+
+// Define $userId based on the logged-in user's session
+$userId = $_SESSION['userid'];
+
+// Fetch user information to display
+$user_stmt = $conn->prepare("SELECT first_name, middle_name, last_name, mobile, birthday, address, birthplace, gender FROM users WHERE id = ?");
+$user_stmt->bind_param("i", $userId);
+$user_stmt->execute();
+$user_result = $user_stmt->get_result();
+
+if ($user_result->num_rows > 0) {
+    $user = $user_result->fetch_assoc();
+    $fullname = $user['first_name'] . ' ' . ($user['middle_name'] ? $user['middle_name'] . ' ' : '') . $user['last_name'];
+} else {
+    $fullname = "User not found";
+}
+
+$user_stmt->close();
+
+// Define the date cutoff (4 months before today)
+$date_cutoff = date('Y-m-d', strtotime('-4 months'));
+
+// Check if the user has uploaded files within the last 4 months
+$upload_check_stmt = $conn->prepare("SELECT COUNT(*) AS recent_uploads FROM clients WHERE id = ? AND upload_date >= ?");
+$upload_check_stmt->bind_param("is", $userId, $date_cutoff);
+$upload_check_stmt->execute();
+$upload_check_result = $upload_check_stmt->get_result();
+$recent_upload = $upload_check_result->fetch_assoc()['recent_uploads'];
+
+// If a recent upload is found, prevent further uploads and show a message
+if ($recent_upload > 0) {
+    echo "<div class='alert alert-warning'>You cannot upload a file because you already uploaded within the last 4 months.</div>";
+} else {
+    // Handle the POST request when form is submitted
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $first_name = $_POST['first_name'];
+        $last_name = $_POST['last_name'];
+        $middle_name = $_POST['middle_name'];
+        $mobile = $_POST['mobile'];
+        $birthday = $_POST['birthday'];
+        $address = $_POST['address'];
+        $birthplace = $_POST['birthplace'];
+        $birthday_formatted = !empty($birthday) ? date('Y-m-d', strtotime($birthday)) : NULL;
+
+        // Prepare and bind the SQL query for insertion
+        $insert_stmt = $conn->prepare("INSERT INTO clients (first_name, last_name, middle_name, mobile, birthday, address, birthplace, upload_date)
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+        $insert_stmt->bind_param("sssssss", $first_name, $last_name, $middle_name, $mobile, $birthday_formatted, $address, $birthplace);
+
+        // Execute the query and check for errors
+        if ($insert_stmt->execute()) {
+            echo "Data inserted successfully!";
+        } else {
+            echo "Error inserting data: " . $insert_stmt->error;
+        }
+        $insert_stmt->close();
+    }
+}
+
 $conn->close();
 ?>
 
@@ -53,18 +98,12 @@ $conn->close();
     </a>
     <div class="sidebar">
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-        <div class="image">
-          <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
-        </div>
-        <div class="info">
-          <?php if ($user): ?>
-            <a href="#" class="d-block">
-              <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']); ?>
-            </a>
-          <?php else: ?>
-            <a href="#" class="d-block">Unknown User</a>
-          <?php endif; ?>
-        </div>
+          <div class="image">
+            <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+          </div>
+          <div class="info">
+              <a href="#" class="d-block"><?php echo htmlspecialchars($fullname); ?></a>
+          </div>
       </div>
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
@@ -116,7 +155,7 @@ $conn->close();
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Send request for your choosen types of assistance</h1>
+            <h1>Upload Files</h1>
           </div>
         </div>
       </div>
@@ -165,7 +204,7 @@ $conn->close();
                   </div>
                   <div class="form-group">
                     <label for="birthday">Birthday</label>
-                    <input type="text" class="form-control" id="birthday" name="birthday" value="<?php echo htmlspecialchars($user['birthday']); ?>" readonly>
+                    <input type="date" class="form-control" id="birthday" name="birthday" value="<?php echo htmlspecialchars($user['birthday']); ?>" readonly>
                   </div>
                   <div class="form-group">
                     <label for="address">Address</label>

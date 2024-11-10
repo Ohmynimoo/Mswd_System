@@ -2,7 +2,6 @@
 // Connect to the database
 include 'config.php';
 
-
 // Check if client_id is provided in the URL
 $client_id = isset($_GET['client_id']) ? intval($_GET['client_id']) : 0;
 
@@ -89,32 +88,44 @@ $conn->close();
               <p>Dashboard</p>
             </a>
           </li>
+
           <li class="nav-item">
-            <a href="individuals.php" class="nav-link">
-              <i class="nav-icon fas fa-user"></i>
-              <p>Individuals</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="clients_table.php" class="nav-link">
-              <i class="nav-icon far fa-bell"></i>
-              <p>Clients</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#" role="button" data-widget="pushmenu">
+            <a class="nav-link" href="#" role="button" data-widget="pushmenu" id="notification-toggle">
               <i class="nav-icon far fa-bell"></i>
               <p>
-                Notifications
+                Client's Request
                 <span class="right badge badge-warning" id="notification-count">0</span>
               </p>
             </a>
-            <ul class="nav nav-treeview" id="notification-menu">
+
+            <!-- Scrollable dropdown for notifications with search bar -->
+            <ul class="nav nav-treeview direct-chat-messages overflow-auto" id="notification-menu" style="display: none;">
+              <!-- Search bar for notifications -->
               <li class="nav-item">
-                <a class="nav-link">No Notifications</a>
+                <input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." />
+              </li>
+
+              <!-- Notifications will be dynamically added here -->
+              <li class="nav-item">
+                <a class="nav-link">No notifications found.</a>
               </li>
             </ul>
           </li>
+
+          <li class="nav-item">
+            <a href="clients_table.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Add to Record</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="individuals.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Records</p>
+            </a>
+          </li>
+
           <li class="nav-item">
             <a href="logout.php" class="nav-link">
               <i class="nav-icon fas fa-sign-out-alt"></i>
@@ -310,20 +321,6 @@ $conn->close();
       </form>
     </div>
 
-    <!-- Toast Notification HTML with improvements -->
-    <div class="toast bg-success text-white" id="submitToast" style="position: fixed; top: 20px; right: 20px; z-index: 9999;" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
-      <div class="toast-header bg-transparent">
-        <strong class="mr-auto">Success</strong>
-        <small class="text-light">Just now</small>
-        <button type="button" class="ml-2 mb-1 close text-light" data-dismiss="toast" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="toast-body">
-        Your record has been submitted successfully!
-      </div>
-    </div>
-
   <script>
     // Toggle form visibility
     document.getElementById('addRecordButton').addEventListener('click', function() {
@@ -331,55 +328,48 @@ $conn->close();
       form.style.display = form.style.display === 'none' ? 'block' : 'none';
     });
 
-    // JavaScript function to calculate age from birth date
+    // Calculate age from birth date
     function calculateAge() {
-        const birthdayInput = document.getElementById('birthday').value;
-        if (birthdayInput) {
-          const birthDate = new Date(birthdayInput);
-          const diff = Date.now() - birthDate.getTime();
-          const ageDate = new Date(diff);
-          const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-          document.getElementById('age').value = age;
-        } else {
-          document.getElementById('age').value = '';
-        }
+      const birthdayInput = document.getElementById('birthday').value;
+      if (birthdayInput) {
+        const birthDate = new Date(birthdayInput);
+        const diff = Date.now() - birthDate.getTime();
+        const ageDate = new Date(diff);
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        document.getElementById('age').value = age;
+      } else {
+        document.getElementById('age').value = '';
       }
+    }
 
-      // Automatically trigger the age calculation if the birthday is pre-filled
-      document.addEventListener('DOMContentLoaded', function() {
-        const birthdayInput = document.getElementById('birthday');
-        if (birthdayInput.value) {
-          calculateAge();
-        }
-      });
+    document.addEventListener('DOMContentLoaded', function() {
+      const birthdayInput = document.getElementById('birthday');
+      if (birthdayInput.value) {
+        calculateAge();
+      }
+    });
 
-    // Handle form submission and trigger toast
+    // Handle form submission (without toast notification)
     document.querySelector('form#recordForm').addEventListener('submit', function(event) {
-        event.preventDefault();  // Prevent actual form submission
+      event.preventDefault();  // Prevent actual form submission
 
-        // Get the client ID from the form
-        var clientId = document.querySelector('input[name="client_id"]').value;
+      var clientId = document.querySelector('input[name="client_id"]').value;
 
-        // Send an AJAX request to delete the client's information
-        fetch('delete_client.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'client_id=' + clientId
-        })
-        .then(response => response.text())
-        .then(data => {
-            console.log(data);
-
-            // Show the toast notification with fade-in animation
-            var toastElement = document.getElementById('submitToast');
-            var toast = new bootstrap.Toast(toastElement, {animation: true, autohide: true, delay: 5000});
-            toast.show();
-        })
-        .catch(error => console.error('Error:', error));
-
-        // Optionally, you can clear the form or reset after submission logic here
+      // AJAX request to delete client's information
+      fetch('delete_client.php', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: 'client_id=' + clientId
+      })
+      .then(response => response.text())
+      .then(data => {
+          console.log(data);
+          document.getElementById('recordForm').reset();
+          document.getElementById('age').value = '';
+      })
+      .catch(error => console.error('Error:', error));
     });
   </script>
 

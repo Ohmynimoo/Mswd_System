@@ -102,9 +102,6 @@ try {
                     ('$id', '$familyFirstName', '$familyLastName', '$familyMiddleName', '$familyDateOfBirth', '$familyGender', '$familyRelationship')";
         }
 
-
-
-
         if (!$conn->query($sql)) {
             throw new Exception('Error saving family member: ' . $conn->error);
         }

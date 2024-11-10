@@ -51,32 +51,44 @@
               <p>Dashboard</p>
             </a>
           </li>
+
           <li class="nav-item">
-            <a href="individuals.php" class="nav-link">
-              <i class="nav-icon fas fa-user"></i>
-              <p>Individuals</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="clients_table.php" class="nav-link">
-              <i class="nav-icon far fa-bell"></i>
-              <p>Clients</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#" role="button" data-widget="pushmenu">
+            <a class="nav-link" href="#" role="button" data-widget="pushmenu" id="notification-toggle">
               <i class="nav-icon far fa-bell"></i>
               <p>
-                Notifications
+                Client's Request
                 <span class="right badge badge-warning" id="notification-count">0</span>
               </p>
             </a>
-            <ul class="nav nav-treeview" id="notification-menu">
+
+            <!-- Scrollable dropdown for notifications with search bar -->
+            <ul class="nav nav-treeview direct-chat-messages overflow-auto" id="notification-menu" style="display: none;">
+              <!-- Search bar for notifications -->
               <li class="nav-item">
-                <a class="nav-link">No Notifications</a>
+                <input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." />
+              </li>
+
+              <!-- Notifications will be dynamically added here -->
+              <li class="nav-item">
+                <a class="nav-link">No notifications found.</a>
               </li>
             </ul>
           </li>
+
+          <li class="nav-item">
+            <a href="clients_table.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Add to Record</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="individuals.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Records</p>
+            </a>
+          </li>
+
           <li class="nav-item">
             <a href="logout.php" class="nav-link">
               <i class="nav-icon fas fa-sign-out-alt"></i>
@@ -149,7 +161,6 @@
         "cache": false,
         "error": function(xhr, error, thrown) {
           console.error("Error loading data:", xhr.responseText);
-          alert("Failed to load data. Check console for details.");
         }
       },
       "columns": [
@@ -170,18 +181,15 @@
         { "data": "birthplace" },
         {
           "data": "id",
-          "render": function(data, type, row, meta) {
+        "render": function(data, type, row, meta) {
             return `
               <div class="btn-group" role="group">
-                <a href="client_details.php?client_id=${data}" class="btn btn-primary btn-sm">Notify Client</a>
                 <a href="add_clients_approved.php?client_id=${data}&show_form=true" class="btn btn-success btn-sm">Add to Record</a>
               </div>`;
           }
         }
       ]
     });
-
-    // Reload table after an update
     table.ajax.reload(null, false);
   });
 </script>

@@ -64,26 +64,44 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
               <p>Dashboard</p>
             </a>
           </li>
+
           <li class="nav-item">
-            <a href="individuals.php" class="nav-link">
-              <i class="nav-icon fas fa-user"></i>
-              <p>Individuals</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#" role="button" data-widget="pushmenu">
+            <a class="nav-link" href="#" role="button" data-widget="pushmenu" id="notification-toggle">
               <i class="nav-icon far fa-bell"></i>
               <p>
-                Notifications
+                Client's Request
                 <span class="right badge badge-warning" id="notification-count">0</span>
               </p>
             </a>
-            <ul class="nav nav-treeview" id="notification-menu">
+
+            <!-- Scrollable dropdown for notifications with search bar -->
+            <ul class="nav nav-treeview direct-chat-messages overflow-auto" id="notification-menu" style="display: none;">
+              <!-- Search bar for notifications -->
               <li class="nav-item">
-                <a class="nav-link">No Notifications</a>
+                <input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." />
+              </li>
+
+              <!-- Notifications will be dynamically added here -->
+              <li class="nav-item">
+                <a class="nav-link">No notifications found.</a>
               </li>
             </ul>
           </li>
+
+          <li class="nav-item">
+            <a href="clients_table.php" class="nav-link">
+              <i class="nav-icon fas fa-pencil-alt"></i>
+              <p>Add to Record</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="individuals.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Records</p>
+            </a>
+          </li>
+
           <li class="nav-item">
             <a href="logout.php" class="nav-link">
               <i class="nav-icon fas fa-sign-out-alt"></i>
@@ -167,110 +185,27 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
       </div>
     </section>
   </div>
+
+  <!-- Toast Container -->
+<div id="toast-container" aria-live="polite" aria-atomic="true" class="fixed-top" style="z-index: 1055;">
+    <div class="toast bg-danger text-white" id="toast-error" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+        <div class="toast-header">
+            <strong class="mr-auto">Error</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body" id="toast-error-message">
+            <!-- Error message will be injected here -->
+        </div>
+    </div>
+</div>
+
 </div>
 <script src="plugins/jquery/jquery.min.js"></script>
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist/js/adminlte.js"></script>
 <script src="data_visualization.js"></script>
 <script src="notifications.js"></script>
-<script>
-  // Scripts for dynamic charts selection
-    let currentChart;
-    function fetchData(year, startMonth, endMonth) {
-        return $.ajax({
-            url: 'data_visualization.php',
-            method: 'GET',
-            data: {
-                year: year,
-                startMonth: startMonth,
-                endMonth: endMonth
-            },
-            dataType: 'json'
-        });
-    }
-    function updateChart(type, data) {
-        if (currentChart) {
-            currentChart.destroy();  // Destroy previous chart instance
-        }
-        const labels = data.map(item => `${item.month}/${item.year}`);
-        const lguData = data.map(item => item.lgu_count);
-        const barangayData = data.map(item => item.barangay_count);
-        const skData = data.map(item => item.sk_count);
-        const chartData = {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'LGU Fund',
-                    data: lguData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                },
-                {
-                    label: 'Barangay Fund',
-                    data: barangayData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                },
-                {
-                    label: 'SK Fund',
-                    data: skData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                }
-            ]
-        };
-        currentChart = new Chart(document.getElementById('dynamicChart').getContext('2d'), {
-            type: type,  // Chart type (bar, pie, line, etc.)
-            data: chartData,
-            options: {
-                responsive: true,
-                scales: type === 'bar' || type === 'line' ? {
-                    y: {
-                        beginAtZero: true
-                    }
-                } : {},  // Scales only for bar/line charts
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Assistance by Month'
-                    },
-                    legend: {
-                        display: type !== 'bar',  // Show legend for pie/line charts
-                        position: 'top'
-                    }
-                }
-            }
-        });
-    }
-    document.getElementById('chart-type').addEventListener('change', function() {
-        const selectedType = this.value;
-        const year = $('#year').val();
-        const startMonth = $('#month-from').val();
-        const endMonth = $('#month-to').val();
-
-        fetchData(year, startMonth, endMonth).done(function(data) {
-            updateChart(selectedType, data);
-        });
-    });
-
-    $('#year, #month-from, #month-to').on('change', function() {
-        const selectedType = $('#chart-type').val();
-        const year = $('#year').val();
-        const startMonth = $('#month-from').val();
-        const endMonth = $('#month-to').val();
-
-        fetchData(year, startMonth, endMonth).done(function(data) {
-            updateChart(selectedType, data);
-        });
-    });
-
-    $(document).ready(function() {
-        const year = $('#year').val();
-        const startMonth = $('#month-from').val();
-        const endMonth = $('#month-to').val();
-        const selectedType = $('#chart-type').val();
-
-        fetchData(year, startMonth, endMonth).done(function(data) {
-            updateChart(selectedType, data);
-        });
-    });
-</script>
 </body>
 </html>

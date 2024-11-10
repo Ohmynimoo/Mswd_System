@@ -32,8 +32,12 @@ if ($userId) {
         $user = $result->fetch_assoc();
 
         // Check if the birthday is invalid (0000-00-00 or empty) and set it to NULL
-        if ($user['birthday'] === '0000-00-00' || empty($user['birthday'])) {
-            $user['birthday'] = null; // Set as NULL if invalid date
+        if (!empty($user['birthday']) && $user['birthday'] !== '0000-00-00') {
+            // Assuming the birthday format is correct, otherwise handle validation here
+            $user['birthday'] = date('Y-m-d', strtotime($user['birthday']));
+        } else {
+            // Set birthday to NULL if invalid
+            $user['birthday'] = null;
         }
     }
     $stmt->close();
@@ -57,7 +61,7 @@ if ($userId) {
         // Process file uploads
         $files = $_FILES['files'];
         $uploadOk = 1;
-        $allowedTypes = ["jpg", "jpeg", "png"];
+        $allowedTypes = ["jpg", "png", "jpeg", "gif"];
         $uploadedFiles = [];
         $fileIds = [];  // Initialize fileIds array
 
@@ -65,36 +69,28 @@ if ($userId) {
         for ($i = 0; $i < count($files['name']); $i++) {
             $fileName = basename($files["name"][$i]);
             $fileTmpName = $files["tmp_name"][$i];
-            $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION)); // Get file extension
             $fileType = mime_content_type($fileTmpName);
+            $fileData = file_get_contents($fileTmpName);
 
-            // Check if the file has an allowed type and extension
-            if (in_array($fileExtension, $allowedTypes) && preg_match('/^image\/(jpeg|jpg|png)$/', $fileType)) {
-                $fileData = file_get_contents($fileTmpName);
+            $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date) 
+                                    VALUES (?, ?, ?, ?, ?, ?, NOW())");
 
-                $stmt = $conn->prepare("INSERT INTO uploads (user_id, client_name, category, filename, file_data, file_type, upload_date) 
-                                        VALUES (?, ?, ?, ?, ?, ?, NOW())");
-
-                if ($stmt === false) {
-                    die("Error in preparing statement: " . $conn->error);
-                }
-
-                // Concatenate first, middle, and last name to form client_name
-                $clientName = trim($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']);
-                $stmt->bind_param("isssss", $userId, $clientName, $category, $fileName, $fileData, $fileType);
-
-                if ($stmt->execute()) {
-                    $uploadedFiles[] = $fileName;
-                    $fileIds[] = $stmt->insert_id;  // Collect the inserted file ID
-                } else {
-                    $_SESSION['error_message'][] = "Error: " . $stmt->error;
-                }
-                $stmt->close();
-            } else {
-                $_SESSION['error_message'][] = "File type not allowed for file: " . $fileName;
+            if ($stmt === false) {
+                die("Error in preparing statement: " . $conn->error);
             }
-        }
 
+            // Concatenate first, middle, and last name to form client_name
+            $clientName = trim($user['first_name'] . ' ' . $user['middle_name'] . ' ' . $user['last_name']);
+            $stmt->bind_param("isssss", $userId, $clientName, $category, $fileName, $fileData, $fileType);
+
+            if ($stmt->execute()) {
+                $uploadedFiles[] = $fileName;
+                $fileIds[] = $stmt->insert_id;  // Collect the inserted file ID
+            } else {
+                $_SESSION['error_message'][] = "Error: " . $stmt->error;
+            }
+            $stmt->close();
+        }
 
         // Notify user and add notification if files were successfully uploaded
         if ($uploadOk == 1 && !empty($uploadedFiles)) {
@@ -120,3 +116,4 @@ if ($userId) {
         exit();
     }
 }
+?>

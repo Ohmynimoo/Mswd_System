@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if an individual with the same First Name, Last Name, and Middle Name already exists
     if (checkDuplicateIndividual($conn, $firstName, $lastName, $middleName)) {
         http_response_code(409); // Conflict
-        echo json_encode(['status' => 'error', 'message' => 'Duplicate entry: An individual with the same First Name, Last Name, and Middle Name already exists.']);
+        echo json_encode(['status' => 'error', 'message' => 'Duplicate entry: This information is already existing please just update on the records.']);
         exit;
     }
 

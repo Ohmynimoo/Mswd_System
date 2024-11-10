@@ -49,31 +49,49 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item">
-            <a href="mswdDashboard.php" class="nav-link">
+            <a href="mswdDashboard.php" class="nav-link active">
               <i class="nav-icon fas fa-home"></i>
               <p>Dashboard</p>
             </a>
           </li>
+
           <li class="nav-item">
-            <a href="individuals.php" class="nav-link active">
-              <i class="nav-icon fas fa-user"></i>
-              <p>Individuals</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#" role="button" data-widget="pushmenu">
+            <a class="nav-link" href="#" role="button" data-widget="pushmenu" id="notification-toggle">
               <i class="nav-icon far fa-bell"></i>
               <p>
-                Notifications
+                Client's Request
                 <span class="right badge badge-warning" id="notification-count">0</span>
               </p>
             </a>
-            <ul class="nav nav-treeview" id="notification-menu">
+
+            <!-- Scrollable dropdown for notifications with search bar -->
+            <ul class="nav nav-treeview direct-chat-messages overflow-auto" id="notification-menu" style="display: none;">
+              <!-- Search bar for notifications -->
               <li class="nav-item">
-                <a class="nav-link">No Notifications</a>
+                <input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." />
+              </li>
+
+              <!-- Notifications will be dynamically added here -->
+              <li class="nav-item">
+                <a class="nav-link">No notifications found.</a>
               </li>
             </ul>
           </li>
+
+          <li class="nav-item">
+            <a href="clients_table.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Add to Record</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="individuals.php" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>Records</p>
+            </a>
+          </li>
+
           <li class="nav-item">
             <a href="logout.php" class="nav-link">
               <i class="nav-icon fas fa-sign-out-alt"></i>
@@ -262,20 +280,97 @@
           </form>
         </div>
   
+    <!-- Assistance Request History Table -->
     <table id="example2" class="table table-striped table-bordered">
         <thead>
             <tr>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Middle Name</th>
-                <th>More Informations</th>
+                <th>More Information</th>
+                <th>Assistance Request History</th> <!-- Column for View button -->
             </tr>
         </thead>
-        <tbody>
-            
+        <tbody id="tableBody">
+            <!-- Rows will be dynamically generated here -->
         </tbody>
     </table>
+
+<!-- Modal for Assistance Request History -->
+<div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">Assistance Request History</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="historyContent">
+                    <!-- Assistance records will be dynamically loaded here -->
+                </div>
+                <!-- Button to open the form to add new assistance -->
+                <button class="btn btn-primary mt-3" id="addAssistanceButton">Add New Assistance Record</button>
+                
+                <!-- Form for adding a new assistance record (initially hidden) -->
+                <div id="addAssistanceForm" class="card mt-3" style="display: none;">
+                    <div class="card-header"><strong>Add New Assistance Record</strong></div>
+                    <div class="card-body">
+                      <form id="newAssistanceForm">
+                          <input type="hidden" name="individual_id" id="individualId">
+                          <div class="form-group">
+                              <label for="newClientType">Client Type</label>
+                              <select class="form-control" id="newClientType" name="client_type" required>
+                                  <option value="4ps">4ps</option>
+                                  <option value="Senior Citizen">Senior Citizen</option>
+                                  <option value="PWD">Person With Disabilities (PWD)</option>
+                                  <option value="Solo Parent">Solo Parent</option>
+                              </select>
+                          </div>
+                            <div class="form-group">  
+                                <label for="newAssistanceType">Assistance Type</label>
+                                <select class="form-control" id="newAssistanceType" name="assistance_type" required>
+                                    <option value="Medical Assistance">Medical Assistance</option>
+                                    <option value="Burial Assistance">Burial Assistance</option>
+                                    <option value="Transportation Assistance">Transportation Assistance</option>
+                                    <option value="Educational Assistance">Educational Assistance</option>
+                                    <option value="Emergency Shelter Assistance">Emergency Shelter Assistance</option>
+                                    <option value="Livelihood Assistance">Livelihood Assistance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newFundType">Fund Type</label>
+                                <select class="form-control" id="newFundType" name="fund_type" required>
+                                    <option value="LGU Fund">LGU Fund</option>
+                                    <option value="Barangay Fund">Barangay Fund</option>
+                                    <option value="SK Fund">SK Fund</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newAmount">Amount</label>
+                                <input type="number" class="form-control" id="newAmount" name="amount" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newDate">Date</label>
+                                <input type="date" class="form-control" id="newDate" name="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newBeneficiary">Beneficiary</label>
+                                <input type="text" class="form-control" id="newBeneficiary" name="beneficiary" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Add Record</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
+
 
  <div class="modal fade" id="recordModal" tabindex="-1" role="dialog" aria-labelledby="recordModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
