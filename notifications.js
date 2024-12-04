@@ -8,29 +8,29 @@ $(document).ready(function() {
         var notificationMenu = $('#notification-menu');
         notificationMenu.empty();
 
+        // Update unread count
+        if (data.unread_count !== undefined) {
+          $('#notification-count').text(data.unread_count); // Set unread count
+        }
+
         // Insert search bar at the top
         notificationMenu.append('<li class="nav-item"><input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." /></li>');
 
-        if (Array.isArray(data) && data.length > 0) {
-          $('#notification-count').text(data.length);
-
-          // Store notifications for filtering
+        if (Array.isArray(data.notifications) && data.notifications.length > 0) {
           var notificationMenuHtml = '';
-          var now = new Date();
-
-          $.each(data, function(index, notification) {
-            var notificationDate = new Date(notification.notification_date);
-            var isNew = (now - notificationDate) <= 1 * 60 * 60 * 1000;
+          $.each(data.notifications, function (index, notification) {
+            var notificationClass = (notification.is_read === 0 || notification.is_read === '0') ? 'unread' : 'read';
+            var badgeHtml = (notificationClass === 'unread') ? '<span class="badge badge-warning">New</span>' : '';
             var notificationHtml = '<li class="nav-item">';
-            notificationHtml += '<a class="nav-link notification-link ' + (isNew ? 'new' : '') + '" data-id="' + notification.id + '">';
-            notificationHtml += '<div class="notification-message" title="' + notification.message + '">' + notification.message + '</div>';
+            notificationHtml += '<a class="nav-link notification-link ' + notificationClass + '" data-id="' + notification.id + '">';
+            notificationHtml += '<div class="notification-message" title="' + notification.message + '">' + notification.message + ' ' + badgeHtml + '</div>';
             notificationHtml += '</a></li>';
             notificationMenuHtml += notificationHtml;
-          });
+        });
+        
 
           notificationMenu.append(notificationMenuHtml);
         } else {
-          $('#notification-count').text(0);
           notificationMenu.append('<li class="nav-item"><a class="nav-link">No notifications found.</a></li>');
         }
       },
@@ -54,7 +54,6 @@ $(document).ready(function() {
   $('#notification-menu').on('click', '.notification-link', function(event) {
     event.preventDefault();
     var notificationId = $(this).data('id');
-    var notificationLink = 'notification_details.php?id=' + notificationId;
     var clickedNotification = $(this);
 
     $.ajax({
@@ -64,13 +63,14 @@ $(document).ready(function() {
       dataType: 'json',
       success: function(response) {
         if (response.unread_count !== undefined) {
-          $('#notification-count').text(response.unread_count);
+          $('#notification-count').text(response.unread_count); // Update unread count
         }
 
-        if (clickedNotification.hasClass('unread')) {
-          clickedNotification.removeClass('unread');
-        }
+        // Mark the notification as read visually
+        clickedNotification.removeClass('unread').addClass('read');
 
+        // Redirect to notification details page
+        var notificationLink = 'notification_details.php?id=' + notificationId;
         window.location.href = notificationLink;
       },
       error: function() {

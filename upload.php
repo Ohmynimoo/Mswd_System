@@ -166,7 +166,11 @@ $conn->close();
           <div class="col-md-8 offset-md-2">
             <div class="card">
               <div class="card-body">
-                <h3>Upload Files</h3>
+                <h3>Upload the following partial requirements</h3>
+                <ul>
+                    <li>Valid ID</li>
+                     <li>Barangay Indigency</li>
+                </ul>
                 <!-- Include the PHP logic -->
                 <?php include 'upload_logic.php'; ?>
                 <?php if (isset($_SESSION['success_message'])): ?>
@@ -243,6 +247,13 @@ $conn->close();
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="dist/js/adminlte.js"></script>
 <script>
+  document.getElementById('uploadForm').addEventListener('submit', function (event) {
+      const filesInput = document.getElementById('files');
+      if (filesInput.files.length === 0) {
+          alert('Please select files to upload.');
+          event.preventDefault(); // Stop form submission
+      }
+  });
   document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
     const category = params.get('category');

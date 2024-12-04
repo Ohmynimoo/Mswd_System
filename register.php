@@ -20,48 +20,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($password !== $repassword) {
         $error = "Passwords do not match.";
     } else {
-        // Check if a user with the same critical fields already exists (ignoring mobile)
-        $stmt = $conn->prepare("SELECT id FROM users WHERE first_name = ? AND middle_name = ? AND last_name = ? AND birthday = ? AND address = ? AND birthplace = ? AND gender = ?");
-        $stmt->bind_param("sssssss", $first_name, $middle_name, $last_name, $birthday, $address, $birthplace, $gender);
+        // Check if a user with the same mobile already exists
+        $stmt = $conn->prepare("SELECT id FROM users WHERE mobile = ?");
+        $stmt->bind_param("s", $mobile);
         $stmt->execute();
-        $stmt->store_result();  
-        
+        $stmt->store_result();
+
         if ($stmt->num_rows > 0) {
-            // User with these details already exists
-            $error = "A user with these details is already registered. Please check your information.";
+            // Duplicate mobile detected
+            $error = "This mobile number is already registered. Please use a different number.";
         } else {
-            // Hash the password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            // Check for duplicate critical fields
+            $stmt = $conn->prepare("SELECT id FROM users WHERE first_name = ? AND middle_name = ? AND last_name = ? AND birthday = ? AND address = ? AND birthplace = ? AND gender = ?");
+            $stmt->bind_param("sssssss", $first_name, $middle_name, $last_name, $birthday, $address, $birthplace, $gender);
+            $stmt->execute();
+            $stmt->store_result();
 
-            // Prepare SQL statement to insert data
-            $stmt = $conn->prepare("INSERT INTO users (first_name, middle_name, last_name, mobile, birthday, address, birthplace, gender, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssssssss", $first_name, $middle_name, $last_name, $mobile, $birthday, $address, $birthplace, $gender, $hashed_password);
-
-            // Execute the statement
-            if ($stmt->execute()) {
-                $success = "New record created successfully";
-                // Save user information in session
-                $_SESSION['user'] = [
-                    'first_name' => $first_name,
-                    'middle_name' => $middle_name,
-                    'last_name' => $last_name,
-                    'mobile' => $mobile,
-                    'birthday' => $birthday,
-                    'address' => $address,
-                    'birthplace' => $birthplace,
-                    'gender' => $gender
-                ];
+            if ($stmt->num_rows > 0) {
+                // User with these details already exists
+                $error = "A user with these details is already registered. Please check your information.";
             } else {
-                $error = "Error: " . $stmt->error;
-            }
+                // Hash the password
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Close the statement
-            $stmt->close();
+                // Prepare SQL statement to insert data
+                $stmt = $conn->prepare("INSERT INTO users (first_name, middle_name, last_name, mobile, birthday, address, birthplace, gender, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("sssssssss", $first_name, $middle_name, $last_name, $mobile, $birthday, $address, $birthplace, $gender, $hashed_password);
+
+                // Execute the statement
+                if ($stmt->execute()) {
+                    $success = "You are now registered!";
+                    // Save user information in session
+                    $_SESSION['user'] = [
+                        'first_name' => $first_name,
+                        'middle_name' => $middle_name,
+                        'last_name' => $last_name,
+                        'mobile' => $mobile,
+                        'birthday' => $birthday,
+                        'address' => $address,
+                        'birthplace' => $birthplace,
+                        'gender' => $gender
+                    ];
+                } else {
+                    $error = "Error: " . $stmt->error;
+                }
+
+                // Close the statement
+                $stmt->close();
+            }
         }
     }
 }
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

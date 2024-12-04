@@ -134,9 +134,15 @@ $conn->close();
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                         <li class="nav-item">
+                            <a href="guide.php" class="nav-link">
+                                <i class="nav-icon fas fa-info-circle"></i>
+                                <p>Guide</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="./client.php" class="nav-link">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
-                                <p>Dashboard</p>
+                                <p>Types of Assistance</p>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -152,7 +158,7 @@ $conn->close();
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="view_comments.php" class="nav-link">
+                            <a href="view_comments.php" class="nav-link active">
                                 <i class="far fa-bell"></i>
                                 <p>
                                     Notifications
@@ -241,11 +247,13 @@ $conn->close();
                                     <form id="reuploadForm" action="reupload.php" method="POST" enctype="multipart/form-data">
                                         <input type="hidden" name="notification_id" value="<?php echo htmlspecialchars($notificationId); ?>" />
                                         <div class="form-group">
-                                            <input type="file" class="form-control-file" id="reupload_files" name="reupload_files[]" multiple required>
+                                            <input type="file" class="form-control-file" id="reupload_files" name="reupload_files[]" multiple required onchange="validateFiles()">
                                         </div>
                                         <button type="submit" class="btn btn-primary mt-2">Submit</button>
                                     </form>
-
+                                </div>
+                                <div class="alert alert-danger d-none" id="file-upload-alert" role="alert">
+                                    Only JPEG, JPG, and PNG files are allowed!
                                 </div>
                             </div>
                         </div>
@@ -257,10 +265,35 @@ $conn->close();
             </section>
         </div>
     </div>
-
     <script src="plugins/jquery/jquery.min.js"></script>
     <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="dist/js/adminlte.js"></script>
     <script src="view_comments.js"></script>
+    <script>
+        function validateFiles() {
+            const allowedExtensions = ['jpeg', 'jpg', 'png'];
+            const fileInput = document.getElementById('reupload_files');
+            const files = fileInput.files;
+            const alertBox = document.getElementById('file-upload-alert');
+            
+            let invalidFiles = [];
+            
+            for (let i = 0; i < files.length; i++) {
+                const fileName = files[i].name;
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+                if (!allowedExtensions.includes(fileExtension)) {
+                    invalidFiles.push(fileName);
+                }
+            }
+
+            if (invalidFiles.length > 0) {
+                alertBox.textContent = `Invalid files detected: ${invalidFiles.join(', ')}. Only JPEG, JPG, and PNG are allowed.`;
+                alertBox.classList.remove('d-none');
+                fileInput.value = ''; // Clear the file input to prevent form submission
+            } else {
+                alertBox.classList.add('d-none');
+            }
+        }
+    </script>
 </body>
 </html>

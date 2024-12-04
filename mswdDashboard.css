@@ -30,6 +30,7 @@
   .year-selector {
     margin-bottom: 20px;
   }
+  
   /* Custom modern style for the dropdown */
   .modern-dropdown {
     appearance: none; 
@@ -41,7 +42,7 @@
     font-size: 16px;
     color: #333;
     width: 100%;
-    max-width: 300px; /* Optional max width */
+    max-width: 200px; /* Optional max width */
     outline: none;
     transition: border 0.3s ease, box-shadow 0.3s ease;
   }
@@ -109,12 +110,12 @@
     white-space: normal;        
     overflow: visible;
   }
-  /* notifications.css */
-  .notification-link.new {
-    background-color: #495658;
-    font-weight: bold;
-    color: #00796b; 
+  .badge-warning {
+    background-color: #ffc107; /* Yellow */
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-left: 5px;
+    vertical-align: middle;
   }
-  
-
-

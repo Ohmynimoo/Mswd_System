@@ -4,7 +4,13 @@ include 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $notificationId = $_POST['notification_id'];
-    $comment = $_POST['comment'];
+    $comment = trim($_POST['comment']); // Trim whitespace
+
+    // Reject empty comments
+    if (empty($comment)) {
+        echo "Comment cannot be empty.";
+        exit;
+    }
     
     // Check if the user is logged in or not
     if (isset($_SESSION['userid'])) {

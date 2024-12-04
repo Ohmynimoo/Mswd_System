@@ -268,34 +268,9 @@ $(document).ready(function () {
                 ${createInputField('Amount', 'editAmount', 'amount', record.amount, 'number')}
                 ${createInputField('Beneficiary', 'editBeneficiary', 'beneficiary', record.beneficiary)}
             </form>`;
-
-        // Handle family members section if there are any
-        if (record.familyMembers && record.familyMembers.length > 0) {
-            formHtml += `<div class="card mt-3">
-                <div class="card-header"><strong>Edit Family Members</strong></div>
-                <div id="familyMembersEditSection" class="card-body">`;
-
-            // Use familyMember variable in the loop to access the correct data
-            record.familyMembers.forEach(function (familyMember, index) {
-                formHtml += `
-                    <div class="family-member-form" data-index="${index}">
-                        <input type="hidden" name="familyMembers[${index}][id]" value="${familyMember.id || ''}"> <!-- Hidden family member ID -->
-                        ${createInputField('Family Member First Name', `editFamilyFirstName${index}`, `familyMembers[${index}][firstName]`, familyMember.firstName)}
-                        ${createInputField('Family Member Last Name', `editFamilyLastName${index}`, `familyMembers[${index}][lastName]`, familyMember.lastName)}
-                        ${createInputField('Family Member Middle Name', `editFamilyMiddleName${index}`, `familyMembers[${index}][middleName]`, familyMember.middleName)}
-                        ${createInputField('Date of Birth', `editFamilyDOB${index}`, `familyMembers[${index}][dateOfBirth]`, familyMember.dateOfBirth, 'date')}
-                        ${createSelectField('Gender', `editFamilyGender${index}`, `familyMembers[${index}][gender]`, familyMember.gender, ['Male', 'Female'])}
-                        ${createInputField('Relationship', `editFamilyRelationship${index}`, `familyMembers[${index}][relationship]`, familyMember.relationship)}
-                    </div>`;
-            });
-
-            formHtml += `</div></div>`;
-        }
-
         return formHtml;
     }
-
-
+    
     function createInputField(label, id, name, value, type = 'text') {
         return `
             <div class="form-group">
@@ -303,7 +278,7 @@ $(document).ready(function () {
                 <input type="${type}" id="${id}" name="${name}" class="form-control" value="${value || ''}" required>
             </div>`;
     }
-
+    
     function createSelectField(label, id, name, selectedValue, options) {
         let optionsHtml = options.map(option => 
             `<option value="${option}" ${option === selectedValue ? 'selected' : ''}>${option}</option>`
@@ -316,7 +291,7 @@ $(document).ready(function () {
                 </select>
             </div>`;
     }
-
+    
     $('#editRecordModal').on('click', '#saveEditButton', function () {
         var editedRecord = $('#editForm').serialize();
         $.ajax({

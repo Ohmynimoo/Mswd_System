@@ -20,10 +20,17 @@ modal.onclick = function() {
 }
 
 // Submit comment logic
-$('#submit-comment').on('click', function() {
+$('#submit-comment').on('click', function () {
     var notificationId = $(this).data('notification-id');
-    var comment = $('#comment').val();
+    var comment = $('#comment').val().trim(); // Trim whitespace from the comment
 
+    if (!comment) {
+        // Alert user if the comment field is empty
+        alert('Please enter a comment before submitting.');
+        return; // Stop further execution
+    }
+
+    // AJAX request to submit the comment
     $.ajax({
         url: 'submit_comment.php',
         type: 'POST',
@@ -31,15 +38,15 @@ $('#submit-comment').on('click', function() {
             notification_id: notificationId,
             comment: comment
         },
-        success: function(response) {
+        success: function (response) {
             $('#commentToast').removeClass('bg-danger').addClass('bg-success');
             $('#commentToastBody').text(response);
             var toastElement = document.getElementById('commentToast');
             var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
             toast.show();
-            $('#comment').val('');
+            $('#comment').val(''); // Clear the comment box on success
         },
-        error: function() {
+        error: function () {
             $('#commentToast').removeClass('bg-success').addClass('bg-danger');
             $('#commentToastBody').text('Error submitting comment.');
             var toastElement = document.getElementById('commentToast');
@@ -150,39 +157,52 @@ $('#send-sms-payout').on('click', function() {
     }
 });
 
-// Deny Request button
-document.getElementById('deny-request').addEventListener('click', function() {
-    var notificationId = this.getAttribute('data-notification-id');
-    
-    if (confirm('Are you sure you want to deny this request?')) {
-        console.log('Deny button clicked, sending request...');
+// Send SMS for Deny and update request status to Denied
+$('#send-sms-deny').on('click', function() {
+    if (confirm('Are you sure you want to send the deny request SMS?')) {
+        var notificationId = $(this).data('notification-id');
+        var mobile = $('#mobile-deny').val();
+        var message = $('#message-deny').val();
 
         $.ajax({
             url: 'update_request_status.php',
             type: 'POST',
-            data: { 
+            data: {
                 notification_id: notificationId,
                 status: 'Denied'
             },
             success: function(response) {
-                console.log('Parsed response:', response);
-
+                console.log('Status update response:', response);
                 if (response.success) {
-                    $('#commentToastBody').text('Deny Request Successfully');
-                    var toastElement = document.getElementById('commentToast');
-                    var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
-                    toast.show();
-
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 2000);
+                    $.ajax({
+                        url: 'send_sms.php',
+                        type: 'POST',
+                        data: {
+                            notification_id: notificationId,
+                            mobile: mobile,
+                            message: message
+                        },
+                        success: function(smsResponse) {
+                            $('#commentToast').removeClass('bg-danger').addClass('bg-success');
+                            $('#commentToastBody').text('Deny request SMS sent successfully.');
+                            var toastElement = document.getElementById('commentToast');
+                            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                            toast.show();
+                        },
+                        error: function() {
+                            $('#commentToast').removeClass('bg-success').addClass('bg-danger');
+                            $('#commentToastBody').text('Error sending deny request SMS.');
+                            var toastElement = document.getElementById('commentToast');
+                            var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+                            toast.show();
+                        }
+                    });
                 } else {
-                    alert('Error: ' + response.message);
+                    alert('Error updating request status: ' + response.message);
                 }
             },
-            error: function(xhr, status, error) {
-                console.log('Error: ' + error);
-                alert('Error: ' + error);
+            error: function() {
+                alert('Error updating request status.');
             }
         });
     }

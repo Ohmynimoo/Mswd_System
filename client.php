@@ -97,9 +97,15 @@ $conn->close();
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     <li class="nav-item">
+                        <a href="guide.php" class="nav-link">
+                            <i class="nav-icon fas fa-info-circle"></i>
+                            <p>Guide</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="./client.php" class="nav-link active">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
-                            <p>Dashboard</p>
+                            <p>Types of Assistance</p>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -138,8 +144,8 @@ $conn->close();
         <section class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1>Assistance to Individuals in Crisis Situation</h1>
+                    <div class="col-sm-10">
+                        <h1>Select The Type of Assistance and Upload the Following Requirements to Send a Request.</h1>
                     </div>
                 </div>
             </div>
@@ -152,12 +158,8 @@ $conn->close();
                             <img src="dist/img/medAss.png" alt="Medical Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Medical Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>Valid Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Medical Assistance')">Upload</button>
+                                <p class="card-text">Medical assistance from the Assistance to Individuals in Crisis Situation (AICS) program helps with the costs of hospitalization, medicine, and other medical procedures:</p>
+                                <button class="btn btn-success" onclick="redirectToUpload('Medical Assistance')">Select</button>
                             </div>
                         </div>
                     </div>
@@ -166,12 +168,9 @@ $conn->close();
                             <img src="dist/img/burial1Ass.png" alt="Burial Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Burial Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>Valid Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Burial Assistance')">Upload</button>
+                                <p class="card-text">This assistance helps families pay for funeral and related expenses, including transporting the deceased to their home or burial site.</p>
+                                <br>
+                                <button class="btn btn-success" onclick="redirectToUpload('Burial Assistance')">Select</button>
                             </div>
                         </div>
                     </div>
@@ -180,12 +179,9 @@ $conn->close();
                             <img src="dist/img/transpoAss.png" alt="Transportation Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Transportation Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>Valid Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Transportation Assistance')">Upload</button>
+                                <p class="card-text">Transportation assistance is one of the services offered by the Assistance to Individuals in Crisis Situation (AICS) program. It is provided to clients who need to travel for essential purposes. </p>
+                            
+                                <button class="btn btn-success" onclick="redirectToUpload('Transportation Assistance')">Select</button>
                             </div>
                         </div>
                     </div>
@@ -194,12 +190,9 @@ $conn->close();
                             <img src="dist/img/educAss.png" alt="Educational Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Educational Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>School Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Educational Assistance')">Upload</button>
+                                <p class="card-text">The Educational Assistance of the social welfare department is a component of the AICS program, designed to provide timely and responsive financial aid to support the school needs of eligible students facing crises.</p>
+                                
+                                <button class="btn btn-success" onclick="redirectToUpload('Educational Assistance')">Select</button>
                             </div>
                         </div>
                     </div>
@@ -208,12 +201,9 @@ $conn->close();
                             <img src="dist/img/livelihoodAss.png" alt="Livelihood Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Livelihood Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>Valid Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Livelihood Assistance')">Upload</button>
+                                <p class="card-text">Livelihood support for those who have lost their income</p>
+                                
+                                <button class="btn btn-success" onclick="redirectToUpload('Livelihood Assistance')">Select</button>
                             </div>
                         </div>
                     </div>
@@ -222,12 +212,9 @@ $conn->close();
                             <img src="dist/img/shelterAss.png" alt="Emergency Shelter Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Emergency Shelter Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>Valid Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Emergency Shelter Assistance')">Upload</button>
+                                <p class="card-text">Emergency shelter assistance (ESA) is a component of the Assistance to Individuals in Crisis Situations (AICS) program that provides financial assistance to families who have experienced a disaster and need to purchase materials to repair their damaged homes</p>
+                            
+                                <button class="btn btn-success" onclick="redirectToUpload('Emergency Shelter Assistance')">Select</button>
                             </div>
                         </div>
                     </div>
@@ -236,12 +223,9 @@ $conn->close();
                             <img src="dist/img/othersubAss.png" alt="Subsistence Assistance" class="card-img-top card-img">
                             <div class="card-body">
                                 <h3>Subsistence Assistance</h3>
-                                <p class="card-text">Provide the following partial requirements:</p>
-                                <ul>
-                                    <li>Valid Id</li>
-                                    <li>Barangay Indigency</li>
-                                </ul>
-                                <button class="btn btn-success" onclick="redirectToUpload('Subsistence Assistance')">Upload</button>
+                                <p class="card-text">It is intended to cover the needs of a person (or jointly assessed persons) at a level that provides for their basic living conditions. This concerns mainly food, clothing, footwear, basic hygiene products, etc.</p>
+                            
+                                <button class="btn btn-success" onclick="redirectToUpload('Subsistence Assistance')">Select</button>
                             </div>
                         </div>
                     </div>

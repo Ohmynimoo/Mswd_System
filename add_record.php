@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Check if all required fields are present
     if (!$firstName || !$lastName || !$middleName || !$age || !$birthPlace || !$address || !$education ||
-        !$income || !$occupation || !$gender || !$mobileNumber || !$clientType || !$date ||
+        !$occupation || !$gender || !$mobileNumber || !$date ||
         !$assistanceType || !$fundType || !$amount || !$beneficiary) {
         
         http_response_code(400);

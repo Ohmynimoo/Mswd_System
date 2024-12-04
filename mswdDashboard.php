@@ -1,11 +1,41 @@
 <?php
 session_start();
 
+include 'config.php';
+
 // Check if the admin is logged in and has admin privileges
 if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
     header("Location: login.php");
     exit();
 }
+
+// Initialize counts to avoid undefined variable warnings
+$totalIndividuals = $totalClients = $totalUnreadNotifications = 0;
+
+// Fetch counts from the database using the existing $conn
+// Query for individuals count
+$result = $conn->query("SELECT COUNT(*) as count FROM individuals");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $totalIndividuals = $row['count'];
+}
+
+// Query for clients count
+$result = $conn->query("SELECT COUNT(*) as count FROM clients");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $totalClients = $row['count'];
+}
+
+// Query for unread notifications count
+$result = $conn->query("SELECT COUNT(*) as count FROM notifications WHERE is_read = 0");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $totalUnreadNotifications = $row['count'];
+}
+
+// Close connection
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,14 +56,11 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
     </ul>
     <ul class="navbar-nav ml-auto">
       <li class="nav-item">
-        <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-          <i class="fas fa-expand-arrows-alt"></i>
-        </a>
+        
       </li>
       <li class="nav-item">
         <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
@@ -80,7 +107,6 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
               <li class="nav-item">
                 <input type="text" class="form-control" id="notification-search" placeholder="Search by client name..." />
               </li>
-
               <!-- Notifications will be dynamically added here -->
               <li class="nav-item">
                 <a class="nav-link">No notifications found.</a>
@@ -117,14 +143,54 @@ if (!isset($_SESSION['admin_id']) || $_SESSION['is_admin'] !== true) {
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="display-3">Assistance to Individuals in Crisis Situation <b>Data Visualization</b></h1>
+            <h1>Dashboard</h1>
           </div>
         </div>
       </div>
     </section>
     <section class="content">
       <div class="container-fluid">
-        <div class="chart-container">
+        <!-- Row for Cards -->
+        <div class="row">
+        <div class="col-lg-4 col-6">
+          <div class="small-box bg-warning">
+            <div class="inner">
+              <h3><?php echo $totalUnreadNotifications; ?></h3>
+              <p>Client's Requests</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <a href="#" class="small-box-footer"><i class="fas fa-arrow-circle-left"></i>Click on the side bar</a>
+          </div>
+        </div>
+          <div class="col-lg-4 col-6">
+            <div class="small-box bg-info">
+              <div class="inner">
+                <h3><?php echo $totalClients; ?></h3>
+                <p>Add to Record</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-pencil-alt"></i>
+              </div>
+              <a href="clients_table.php" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <div class="col-lg-4 col-6">
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3><?php echo $totalIndividuals; ?></h3>
+                <p>Records</p>
+              </div>
+              <div class="icon">
+                <i class="fas fa-user"></i>
+              </div>
+              <a href="individuals.php" class="small-box-footer">View Records <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <h2>Data Visualization</h2>
+        <div class="selector-container">
           <div class="year-selector">
             <label for="year">Select Year:</label>
             <select id="year" class="modern-dropdown"></select>

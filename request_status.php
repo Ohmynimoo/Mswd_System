@@ -102,9 +102,15 @@ $statusColorClass = isset($statusColors[$requestStatus]) ? $statusColors[$reques
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     <li class="nav-item">
-                        <a href="./client.php" class="nav-link active">
+                        <a href="guide.php" class="nav-link">
+                            <i class="nav-icon fas fa-info-circle"></i>
+                            <p>Guide</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="./client.php" class="nav-link">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
-                            <p>Dashboard</p>
+                            <p>Types of Assistance</p>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -114,7 +120,7 @@ $statusColorClass = isset($statusColors[$requestStatus]) ? $statusColors[$reques
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="./request_status.php" class="nav-link">
+                        <a href="./request_status.php" class="nav-link active">
                             <i class="nav-icon fas fa-user"></i>
                             <p>Status</p>
                         </a>
@@ -171,7 +177,7 @@ $statusColorClass = isset($statusColors[$requestStatus]) ? $statusColors[$reques
 
                             <div class="status-step <?php echo ($requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>">
                                 <div class="status-circle <?php echo ($requestStatus == 'Processing') ? 'active' : ''; ?>" data-tooltip="Your request is being processed">
-                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <i class="fas fa-spinner"></i>
                                 </div>
                                 <div class="status-line <?php echo ($requestStatus == 'Processing' || $requestStatus == 'Approved') ? 'completed' : ''; ?>"></div>
                                 <div class="status-text <?php echo ($requestStatus == 'Processing') ? 'active' : ''; ?>">Processing</div>

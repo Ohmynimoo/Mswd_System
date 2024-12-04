@@ -223,7 +223,7 @@ $conn->close();
         <div class="form-row">
           <div class="form-group col-md-4">
             <label for="clientType">Client Type</label>
-            <select class="form-control" id="clientType" name="clientType" required>
+            <select class="form-control" id="clientType" name="clientType">
               <option value="">Select Client Type</option>
               <option value="4ps">4ps</option>
               <option value="Senior Citizen">Senior Citizen</option>

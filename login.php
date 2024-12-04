@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 session_regenerate_id(true);
                 $_SESSION['userid'] = $id;
                 $_SESSION['is_admin'] = false;
-                header("Location: client.php");
+                header("Location: guide.php");
             }
             exit();
         } else {

@@ -8,6 +8,20 @@
   <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
   <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <style>
+    .table {
+            margin-bottom: 30px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .table thead {
+            background: #007bff;
+            color: white;
+        }
+        .table tbody tr:hover {
+            background: #f1f1f1;
+        }
+  </style>
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -106,21 +120,27 @@
   <div class="content-wrapper">
     <section class="content-header">
       <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1>Assistance to Individuals in Crisis Situation (AICS) by: MSWDO of Bulan, Sorsogon</h1>
-          </div>
+        <div class="main-header">
+          <h1><i class="fas fa-file-alt"></i> Assistance to Individuals in Crisis Situation Records</h1>
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="mswdDashboard.php">Dashboard</a></li>
+            <li class="breadcrumb-item active">Records</li>
+          </ol>
         </div>
       </div>
     </section>
 
-    <div class="container mt-5">
-    <h2>Assistance Record Management</h2>
-    <button id="addRecordButton" class="btn btn-success mb-3">Add Record</button>
-    <div id="addRecordForm" class="container" style="display: none;">
-        <form id="recordForm" class="form-horizontal">
+
+    <section class="content">
+      <div class="container">
+        <h2 class="text-primary mb-4">Manage Individual Records</h2>
+        <button id="addRecordButton" class="btn btn-success mb-4"><i class="fas fa-plus"></i> Add Record</button>
+        <div id="addRecordForm" class="card p-4 mb-5" style="display: none;">
+          <h4 class="text-primary">Add New Individual</h4>
+          <form id="recordForm" class="form-horizontal">
             <!-- Personal Information Section -->
-            <h4>Personal Information</h4>
+            <h5>Personal Information</h5>
+            <hr>
             <div class="form-row">
                 <div class="form-group col-md-4">
                     <label for="firstName">First Name</label>
@@ -171,7 +191,7 @@
                 </div>
                 <div class="form-group col-md-4">
                     <label for="income">Income Per Day</label>
-                    <input type="number" class="form-control" id="income" name="income" required>
+                    <input type="number" class="form-control" id="income" name="income" min="0" value="0" required>
                 </div>
                 <div class="form-group col-md-4">
                     <label for="occupation">Occupation</label>
@@ -184,7 +204,7 @@
             <div class="form-row">
                 <div class="form-group col-md-4">
                     <label for="clientType">Client Type</label>
-                    <select class="form-control" id="clientType" name="clientType" required>
+                    <select class="form-control" id="clientType" name="clientType">
                         <option value="">Select Client Type</option>
                         <option value="4ps">4ps</option>
                         <option value="Senior Citizen">Senior Citizen</option>
@@ -280,21 +300,27 @@
           </form>
         </div>
   
-    <!-- Assistance Request History Table -->
-    <table id="example2" class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Middle Name</th>
-                <th>More Information</th>
-                <th>Assistance Request History</th> <!-- Column for View button -->
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <!-- Rows will be dynamically generated here -->
-        </tbody>
-    </table>
+        <div class="card">
+          <div class="card-body">
+            <table id="example2" class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Middle Name</th>
+                  <th>More Information</th>
+                  <th>Assistance Request History</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- Rows will be dynamically generated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
 <!-- Modal for Assistance Request History -->
 <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
@@ -321,7 +347,8 @@
                           <input type="hidden" name="individual_id" id="individualId">
                           <div class="form-group">
                               <label for="newClientType">Client Type</label>
-                              <select class="form-control" id="newClientType" name="client_type" required>
+                              <select class="form-control" id="newClientType" name="client_type">
+                                  <option value="None">None</option>
                                   <option value="4ps">4ps</option>
                                   <option value="Senior Citizen">Senior Citizen</option>
                                   <option value="PWD">Person With Disabilities (PWD)</option>
@@ -370,8 +397,6 @@
         </div>
     </div>
 </div>
-
-
  <div class="modal fade" id="recordModal" tabindex="-1" role="dialog" aria-labelledby="recordModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">

@@ -23,11 +23,8 @@ $fundType = $_POST['fundType'];
 $amount = $_POST['amount'];
 $beneficiary = $_POST['beneficiary'];
 
-// Family members data (sent as JSON string)
-$familyMembers = isset($_POST['familyMembers']) ? json_decode($_POST['familyMembers'], true) : [];
-
 // Validate required fields
-if (empty($firstName) || empty($lastName) || empty($age) || empty($birthPlace) || empty($address) || empty($education) || empty($income) || empty($occupation) || empty($mobileNumber) || empty($gender) || empty($clientType) || empty($assistanceType) || empty($fundType) || empty($amount) || empty($beneficiary)) {
+if (empty($firstName) || empty($lastName) || empty($age) || empty($birthPlace) || empty($address) || empty($education) || empty($occupation) || empty($mobileNumber) || empty($gender) || empty($clientType) || empty($assistanceType) || empty($fundType) || empty($amount) || empty($beneficiary)) {
     echo json_encode(['status' => 'error', 'message' => 'Required fields cannot be empty.']);
     exit;
 }
@@ -76,40 +73,9 @@ try {
         throw new Exception('Error updating individual record: ' . $conn->error);
     }
 
-    // Insert or update family members
-    foreach ($familyMembers as $familyMember) {
-        $familyMemberId = isset($familyMember['id']) ? $familyMember['id'] : null;
-        $familyFirstName = $familyMember['firstName'];
-        $familyLastName = $familyMember['lastName'];
-        $familyMiddleName = $familyMember['middleName'];
-        $familyDateOfBirth = $familyMember['dateOfBirth'];
-        $familyGender = $familyMember['gender'];
-        $familyRelationship = $familyMember['relationship'];
-
-        if ($familyMemberId) {
-            // Update existing family member
-            $sql = "UPDATE family_members SET 
-                    firstName = '$familyFirstName', 
-                    lastName = '$familyLastName', 
-                    middleName = '$familyMiddleName', 
-                    dateOfBirth = '$familyDateOfBirth', 
-                    gender = '$familyGender', 
-                    relationship = '$familyRelationship' 
-                WHERE id = '$familyMemberId' AND individual_id = '$id'";
-        } else {
-            // Insert new family member
-            $sql = "INSERT INTO family_members (individual_id, firstName, lastName, middleName, dateOfBirth, gender, relationship) VALUES 
-                    ('$id', '$familyFirstName', '$familyLastName', '$familyMiddleName', '$familyDateOfBirth', '$familyGender', '$familyRelationship')";
-        }
-
-        if (!$conn->query($sql)) {
-            throw new Exception('Error saving family member: ' . $conn->error);
-        }
-    }
-
     // Commit the transaction
     $conn->commit();
-    echo json_encode(['status' => 'success', 'message' => 'Record and family members updated successfully.']);
+    echo json_encode(['status' => 'success', 'message' => 'Record updated successfully.']);
 } catch (Exception $e) {
     // Rollback the transaction if something went wrong
     $conn->rollback();

@@ -18,7 +18,8 @@ if (isset($_GET['id'])) {
         users.birthday,
         users.address,
         users.birthplace,
-        users.gender
+        users.gender,
+        notifications.file_ids -- Include file_ids in the query
     FROM notifications
     INNER JOIN uploads ON FIND_IN_SET(uploads.id, notifications.file_ids)
     INNER JOIN users ON uploads.user_id = users.id
@@ -31,11 +32,16 @@ if (isset($_GET['id'])) {
     $notification = $result->fetch_assoc();
     $stmt->close();
 
+    // Fetch the file_ids as an array
+    $fileIdsString = $notification['file_ids']; // Retrieve the file_ids string from the notification
+    $fileIdsArray = explode(',', $fileIdsString); // Convert it into an array for processing
+
     // Fetch the original files associated with the notification
-    $fileIds = explode(',', $notification['file_ids']);
-    $fileIdsString = implode("','", $fileIds); // Prepare file IDs for SQL IN clause
-    $fileQuery = "SELECT id, filename, file_type, file_data FROM uploads WHERE id IN ('$fileIdsString')";
-    $fileResult = $conn->query($fileQuery);
+    $fileQuery = "SELECT id, filename, file_type, file_data, upload_date FROM uploads WHERE id IN (" . implode(',', array_fill(0, count($fileIdsArray), '?')) . ")";
+    $stmt = $conn->prepare($fileQuery);
+    $stmt->bind_param(str_repeat('i', count($fileIdsArray)), ...$fileIdsArray);
+    $stmt->execute();
+    $fileResult = $stmt->get_result();
 
     $files = [];
     if ($fileResult->num_rows > 0) {
@@ -45,16 +51,18 @@ if (isset($_GET['id'])) {
                 'id' => $row['id'],
                 'filename' => $row['filename'],
                 'file_type' => $row['file_type'],
+                'upload_date' => $row['upload_date'],
                 'file_data' => 'data:' . $row['file_type'] . ';base64,' . $fileData
-            ];  
+            ];
         }
     }
 
-    // Fetch the reuploaded files based on user_id and category
-    $reuploadQuery = "SELECT id, filename, file_type, file_data FROM uploads 
-                      WHERE user_id = ? AND category = ? AND id NOT IN ('$fileIdsString')";
+    // Fetch the reuploaded files
+    $reuploadQuery = "SELECT id, filename, file_type, file_data, upload_date FROM uploads 
+                      WHERE user_id = ? AND category = ? AND id NOT IN (" . implode(',', array_fill(0, count($fileIdsArray), '?')) . ")";
     $stmt = $conn->prepare($reuploadQuery);
-    $stmt->bind_param("is", $notification['user_id'], $notification['category']);
+    $params = array_merge([$notification['user_id'], $notification['category']], $fileIdsArray);
+    $stmt->bind_param("is" . str_repeat('i', count($fileIdsArray)), ...$params);
     $stmt->execute();
     $reuploadResult = $stmt->get_result();
 
@@ -66,15 +74,13 @@ if (isset($_GET['id'])) {
                 'id' => $row['id'],
                 'filename' => $row['filename'],
                 'file_type' => $row['file_type'],
+                'upload_date' => $row['upload_date'],
                 'file_data' => 'data:' . $row['file_type'] . ';base64,' . $fileData
             ];
         }
     }
     $stmt->close();
     $conn->close();
-} else {
-    echo "No notification ID provided.";
-    exit;
 }
 ?>
 
@@ -89,6 +95,22 @@ if (isset($_GET['id'])) {
     <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
     <link rel="stylesheet" href="notification_details.css">
+    <link rel="stylesheet" href="mswdDashboard.css">
+    <style>
+        .file-details {
+            margin-bottom: 20px;
+        }
+        .file-details img {
+            max-width: 150px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .file-details p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+    </style>
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -228,14 +250,17 @@ if (isset($_GET['id'])) {
                             </table>
                         </div>
                     
-                        <!-- Display original files -->
+                        <!-- Display original files with upload_date -->
                         <h5 class="mt-4"><strong>Uploaded Files:</strong></h5>
                         <div class="uploaded-files-container">
                             <div class="uploaded-files">
                                 <?php
                                 if (!empty($files)) {
                                     foreach ($files as $file) {
-                                        echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
+                                        echo '<div class="file-details">';
+                                        echo '<img src="' . $file['file_data'] . '" alt="Uploaded File" class="enlarge-image">';
+                                        echo '<p>Upload Date: ' . htmlspecialchars($file['upload_date']) . '</p>';
+                                        echo '</div>';
                                     }
                                 } else {
                                     echo "<p>No files uploaded.</p>";
@@ -244,15 +269,19 @@ if (isset($_GET['id'])) {
                             </div>
                         </div>
 
+                        <!-- Display reuploaded files with upload_date -->
                         <div class="uploaded-files-container">
                             <div class="uploaded-files">
                                 <?php
                                 if (!empty($reuploadedFiles)) {
                                     foreach ($reuploadedFiles as $file) {
-                                        echo '<img src="' . $file['file_data'] . '" alt="' . htmlspecialchars($file['filename']) . '" class="enlarge-image">';
+                                        echo '<div class="file-details">';
+                                        echo '<img src="' . $file['file_data'] . '" alt="Reuploaded File" class="enlarge-image">';
+                                        echo '<p>Upload Date: ' . htmlspecialchars($file['upload_date']) . '</p>';
+                                        echo '</div>';
                                     }
                                 } else {
-                                    echo "<p>No re-uploaded files.</p>";
+                                    echo "<p>No reuploaded files.</p>";
                                 }
                                 ?>
                             </div>
@@ -303,12 +332,23 @@ if (isset($_GET['id'])) {
                             </div>
                         </div>
 
-                        <!-- Denied Button -->
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-danger btn-block" id="deny-request" data-notification-id="<?php echo $notificationId; ?>">
-                                <i class="fas fa-times-circle"></i> Deny Request
-                            </button>
+                        <!-- SMS for Deny -->
+                        <div class="col-md-15">
+                            <form id="send-sms-deny-form">
+                                <div class="form-group">
+                                    <label for="mobile-deny"><i class="fas fa-phone-alt"></i> Mobile Number</label>
+                                    <input type="text" class="form-control" id="mobile-deny" value="<?php echo htmlspecialchars($notification['mobile']); ?>" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="message-deny"><i class="fas fa-comment-alt"></i> Message</label>
+                                    <textarea class="form-control sms-textarea" id="message-deny" rows="3">Hello, this is a notification from MSWDO of Bulan Sorsogon. Unfortunately, your request has been denied. Please contact our office for further details. Thank you.</textarea>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-block" id="send-sms-deny" data-notification-id="<?php echo $notificationId; ?>">
+                                    <i class="fas fa-paper-plane"></i> Send SMS for Deny
+                                </button>
+                            </form>
                         </div>
+
             <div class="toast-container position-fixed top-0 end-0 p-3">
                 <div id="commentToast" class="toast bg-success" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">

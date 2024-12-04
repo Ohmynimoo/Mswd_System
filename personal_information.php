@@ -105,13 +105,19 @@ $conn->close();
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     <li class="nav-item">
-                        <a href="./client.php" class="nav-link active">
-                            <i class="nav-icon fas fa-tachometer-alt"></i>
-                            <p>Dashboard</p>
+                        <a href="guide.php" class="nav-link">
+                            <i class="nav-icon fas fa-info-circle"></i>
+                            <p>Guide</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="./personal_information.php" class="nav-link">
+                        <a href="./client.php" class="nav-link">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>Types of assistance</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="./personal_information.php" class="nav-link active">
                             <i class="nav-icon fas fa-user"></i>
                             <p>Personal Information</p>
                         </a>

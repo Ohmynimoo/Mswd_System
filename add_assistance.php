@@ -15,7 +15,7 @@ try {
         $beneficiary = $_POST['beneficiary'] ?? null;
 
         // Validate required fields
-        if (!$individual_id || !$clientType || !$assistanceType || !$fundType || !$amount || !$date || !$beneficiary) {
+        if (!$individual_id || !$assistanceType || !$fundType || !$amount || !$date || !$beneficiary) {
             throw new Exception('All fields are required');
         }
 

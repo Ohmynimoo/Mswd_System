@@ -121,9 +121,9 @@
     white-space: nowrap;
 }
 /* Status specific colors */
-.pending-status { background-color: #ffeb3b; color: #856404; }
-.processing-status { background-color: #2196f3; color: #fff; }
-.approved-status { background-color: #4caf50; color: #fff; }
+.pending-status { background-color: #4caf50; color: #fff; }
+.processing-status { background-color: #4caf50; color: #fff; } 
+.approved-status { background-color:  #4caf50; color: #fff; }
 .denied-status { background-color: #f44336; color: #fff; }
 .no-request-status { background-color: #e0e0e0; color: #424242; }
 
@@ -134,3 +134,25 @@
     font-size: 18px;
     line-height: 1.5;
 }
+.status-step.completed .status-circle {
+    background-color: #2196f3; /* Green for completed statuses */
+    border-color: #2196f3;
+    color: white;
+}
+
+.status-step .status-line.completed {
+    background-color: #28a745; /* Green for the lines */
+}
+
+.status-step .status-circle.active {
+    background-color: #4caf50; /* Yellow for active status */
+    border-color: #4caf50;
+    color: white;
+}
+
+.status-step .status-circle.denied {
+    background-color: #dc3545; /* Red for denied */
+    border-color: #dc3545;
+    color: white;
+}
+
